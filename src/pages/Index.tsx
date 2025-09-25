@@ -6,6 +6,7 @@ import { LODHandlingForm } from '@/components/forms/LODHandlingForm';
 import { NormalizationForm } from '@/components/forms/NormalizationForm';
 import { ExploratoryAnalysisForm } from '@/components/forms/ExploratoryAnalysisForm';
 import { GroupComparisonForm } from '@/components/forms/GroupComparisonForm';
+import { DataTransformationForm } from '@/components/forms/DataTransformationForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 
@@ -39,6 +40,10 @@ interface PipelineState {
   timePoints: string;
   selectedModels: string[];
   useMachineLearning: boolean;
+  
+  // Data Transformation
+  selectedTransformations: string[];
+  customTransformations: string;
 }
 
 const Index = () => {
@@ -62,6 +67,8 @@ const Index = () => {
     timePoints: '',
     selectedModels: [],
     useMachineLearning: false,
+    selectedTransformations: [],
+    customTransformations: '',
   });
 
   const steps = [
@@ -152,7 +159,14 @@ const Index = () => {
     {
       title: 'Data Transformation',
       description: 'Configure data transformation algorithms',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <DataTransformationForm
+          selectedTransformations={pipelineState.selectedTransformations}
+          onTransformationsChange={(transformations) => setPipelineState(prev => ({ ...prev, selectedTransformations: transformations }))}
+          customTransformations={pipelineState.customTransformations}
+          onCustomTransformationsChange={(transformations) => setPipelineState(prev => ({ ...prev, customTransformations: transformations }))}
+        />
+      )
     },
     {
       title: 'Statistical Modeling',
