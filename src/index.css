@@ -2,39 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Alamar Argo Analytical Pipeline Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core Brand Colors - Scientific/Biotech Palette */
+    --background: 210 20% 98%;
+    --foreground: 213 27% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 213 27% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 213 27% 14%;
 
-    --primary: 222.2 47.4% 11.2%;
+    /* Primary - Deep Scientific Blue */
+    --primary: 213 94% 25%;
     --primary-foreground: 210 40% 98%;
+    --primary-hover: 213 94% 20%;
+    --primary-light: 213 94% 85%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Professional Teal */
+    --secondary: 185 84% 28%;
+    --secondary-foreground: 210 40% 98%;
+    --secondary-hover: 185 84% 22%;
+    --secondary-light: 185 84% 88%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Accent - Science Green */
+    --accent: 162 73% 35%;
+    --accent-foreground: 210 40% 98%;
+    --accent-hover: 162 73% 28%;
+    --accent-light: 162 73% 88%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Muted - Cool Gray */
+    --muted: 210 16% 93%;
+    --muted-foreground: 213 20% 45%;
 
-    --destructive: 0 84.2% 60.2%;
+    /* Pipeline Step Colors */
+    --step-active: 213 94% 25%;
+    --step-complete: 162 73% 35%;
+    --step-pending: 210 16% 75%;
+    --step-current: 185 84% 28%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and Inputs */
+    --border: 210 16% 88%;
+    --input: 210 16% 96%;
+    --ring: 213 94% 25%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(213 94% 25%) 0%, hsl(185 84% 28%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(185 84% 28%) 0%, hsl(162 73% 35%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(210 20% 98%) 0%, hsl(210 16% 95%) 100%);
+    
+    /* Shadows */
+    --shadow-soft: 0 1px 3px 0 hsl(213 27% 14% / 0.1), 0 1px 2px 0 hsl(213 27% 14% / 0.06);
+    --shadow-medium: 0 4px 6px -1px hsl(213 27% 14% / 0.1), 0 2px 4px -1px hsl(213 27% 14% / 0.06);
+    --shadow-large: 0 10px 15px -3px hsl(213 27% 14% / 0.1), 0 4px 6px -2px hsl(213 27% 14% / 0.05);
+    --shadow-glow: 0 0 0 1px hsl(213 94% 25% / 0.15), 0 0 20px hsl(213 94% 25% / 0.1);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     --radius: 0.5rem;
 
