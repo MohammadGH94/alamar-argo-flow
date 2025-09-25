@@ -4,6 +4,8 @@ import { DataEntryForm } from '@/components/forms/DataEntryForm';
 import { QCForm } from '@/components/forms/QCForm';
 import { LODHandlingForm } from '@/components/forms/LODHandlingForm';
 import { NormalizationForm } from '@/components/forms/NormalizationForm';
+import { ExploratoryAnalysisForm } from '@/components/forms/ExploratoryAnalysisForm';
+import { GroupComparisonForm } from '@/components/forms/GroupComparisonForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 
@@ -26,6 +28,17 @@ interface PipelineState {
   normalizationMethod: string;
   selectedBridgingOptions: string[];
   customNormalizationMethod: string;
+  
+  // Exploratory Analysis
+  selectedAnalysisMethods: string[];
+  customAnalysisMethods: string;
+  
+  // Group Comparison
+  numberOfGroups: string;
+  dataType: string;
+  timePoints: string;
+  selectedModels: string[];
+  useMachineLearning: boolean;
 }
 
 const Index = () => {
@@ -42,6 +55,13 @@ const Index = () => {
     normalizationMethod: '',
     selectedBridgingOptions: [],
     customNormalizationMethod: '',
+    selectedAnalysisMethods: [],
+    customAnalysisMethods: '',
+    numberOfGroups: '',
+    dataType: '',
+    timePoints: '',
+    selectedModels: [],
+    useMachineLearning: false,
   });
 
   const steps = [
@@ -99,16 +119,35 @@ const Index = () => {
         />
       )
     },
-    // Placeholder steps for remaining pipeline stages
     {
       title: 'Exploratory Analysis',
       description: 'Configure exploratory data analysis methods',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <ExploratoryAnalysisForm
+          selectedMethods={pipelineState.selectedAnalysisMethods}
+          onMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedAnalysisMethods: methods }))}
+          customMethods={pipelineState.customAnalysisMethods}
+          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customAnalysisMethods: methods }))}
+        />
+      )
     },
     {
       title: 'Group Comparison',
       description: 'Set up group-based statistical comparisons',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <GroupComparisonForm
+          numberOfGroups={pipelineState.numberOfGroups}
+          onNumberOfGroupsChange={(value) => setPipelineState(prev => ({ ...prev, numberOfGroups: value }))}
+          dataType={pipelineState.dataType}
+          onDataTypeChange={(value) => setPipelineState(prev => ({ ...prev, dataType: value }))}
+          timePoints={pipelineState.timePoints}
+          onTimePointsChange={(value) => setPipelineState(prev => ({ ...prev, timePoints: value }))}
+          selectedModels={pipelineState.selectedModels}
+          onModelsChange={(models) => setPipelineState(prev => ({ ...prev, selectedModels: models }))}
+          useMachineLearning={pipelineState.useMachineLearning}
+          onMachineLearningChange={(value) => setPipelineState(prev => ({ ...prev, useMachineLearning: value }))}
+        />
+      )
     },
     {
       title: 'Data Transformation',
