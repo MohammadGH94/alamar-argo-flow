@@ -9,6 +9,7 @@ import { GroupComparisonForm } from '@/components/forms/GroupComparisonForm';
 import { DataTransformationForm } from '@/components/forms/DataTransformationForm';
 import { StatisticalModelingForm } from '@/components/forms/StatisticalModelingForm';
 import { ComparatorsForm } from '@/components/forms/ComparatorsForm';
+import { MultipleTestingCorrectionForm } from '@/components/forms/MultipleTestingCorrectionForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 
@@ -56,6 +57,11 @@ interface PipelineState {
   selectedExtractionValues: string[];
   customContrasts: string;
   customExtractionValues: string;
+  
+  // Multiple Testing Correction
+  correctionMethod: string;
+  selectedAdditionalCorrectionMethods: string[];
+  customCorrectionMethods: string;
 }
 
 const Index = () => {
@@ -87,6 +93,9 @@ const Index = () => {
     selectedExtractionValues: [],
     customContrasts: '',
     customExtractionValues: '',
+    correctionMethod: '',
+    selectedAdditionalCorrectionMethods: [],
+    customCorrectionMethods: '',
   });
 
   const steps = [
@@ -217,7 +226,16 @@ const Index = () => {
     {
       title: 'Multiple Testing Correction',
       description: 'Configure multiple comparison correction methods',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <MultipleTestingCorrectionForm
+          selectedMethod={pipelineState.correctionMethod}
+          onMethodChange={(method) => setPipelineState(prev => ({ ...prev, correctionMethod: method }))}
+          selectedAdditionalMethods={pipelineState.selectedAdditionalCorrectionMethods}
+          onAdditionalMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedAdditionalCorrectionMethods: methods }))}
+          customMethods={pipelineState.customCorrectionMethods}
+          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customCorrectionMethods: methods }))}
+        />
+      )
     },
     {
       title: 'Visualization',
