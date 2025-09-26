@@ -7,6 +7,7 @@ import { NormalizationForm } from '@/components/forms/NormalizationForm';
 import { ExploratoryAnalysisForm } from '@/components/forms/ExploratoryAnalysisForm';
 import { GroupComparisonForm } from '@/components/forms/GroupComparisonForm';
 import { DataTransformationForm } from '@/components/forms/DataTransformationForm';
+import { StatisticalModelingForm } from '@/components/forms/StatisticalModelingForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 
@@ -44,6 +45,10 @@ interface PipelineState {
   // Data Transformation
   selectedTransformations: string[];
   customTransformations: string;
+  
+  // Statistical Modeling
+  selectedDiagnostics: string[];
+  customDiagnostics: string;
 }
 
 const Index = () => {
@@ -69,6 +74,8 @@ const Index = () => {
     useMachineLearning: false,
     selectedTransformations: [],
     customTransformations: '',
+    selectedDiagnostics: [],
+    customDiagnostics: '',
   });
 
   const steps = [
@@ -171,7 +178,14 @@ const Index = () => {
     {
       title: 'Statistical Modeling',
       description: 'Define model diagnostics and validation',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <StatisticalModelingForm
+          selectedDiagnostics={pipelineState.selectedDiagnostics}
+          onDiagnosticsChange={(diagnostics) => setPipelineState(prev => ({ ...prev, selectedDiagnostics: diagnostics }))}
+          customDiagnostics={pipelineState.customDiagnostics}
+          onCustomDiagnosticsChange={(diagnostics) => setPipelineState(prev => ({ ...prev, customDiagnostics: diagnostics }))}
+        />
+      )
     },
     {
       title: 'Comparators',
