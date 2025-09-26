@@ -8,6 +8,7 @@ import { ExploratoryAnalysisForm } from '@/components/forms/ExploratoryAnalysisF
 import { GroupComparisonForm } from '@/components/forms/GroupComparisonForm';
 import { DataTransformationForm } from '@/components/forms/DataTransformationForm';
 import { StatisticalModelingForm } from '@/components/forms/StatisticalModelingForm';
+import { ComparatorsForm } from '@/components/forms/ComparatorsForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 
@@ -49,6 +50,12 @@ interface PipelineState {
   // Statistical Modeling
   selectedDiagnostics: string[];
   customDiagnostics: string;
+  
+  // Comparators
+  selectedContrasts: string[];
+  selectedExtractionValues: string[];
+  customContrasts: string;
+  customExtractionValues: string;
 }
 
 const Index = () => {
@@ -76,6 +83,10 @@ const Index = () => {
     customTransformations: '',
     selectedDiagnostics: [],
     customDiagnostics: '',
+    selectedContrasts: [],
+    selectedExtractionValues: [],
+    customContrasts: '',
+    customExtractionValues: '',
   });
 
   const steps = [
@@ -190,7 +201,18 @@ const Index = () => {
     {
       title: 'Comparators',
       description: 'Select values to extract from models',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <ComparatorsForm
+          selectedContrasts={pipelineState.selectedContrasts}
+          onContrastsChange={(contrasts) => setPipelineState(prev => ({ ...prev, selectedContrasts: contrasts }))}
+          selectedExtractionValues={pipelineState.selectedExtractionValues}
+          onExtractionValuesChange={(values) => setPipelineState(prev => ({ ...prev, selectedExtractionValues: values }))}
+          customContrasts={pipelineState.customContrasts}
+          onCustomContrastsChange={(contrasts) => setPipelineState(prev => ({ ...prev, customContrasts: contrasts }))}
+          customExtractionValues={pipelineState.customExtractionValues}
+          onCustomExtractionValuesChange={(values) => setPipelineState(prev => ({ ...prev, customExtractionValues: values }))}
+        />
+      )
     },
     {
       title: 'Multiple Testing Correction',
