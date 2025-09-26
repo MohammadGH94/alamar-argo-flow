@@ -10,6 +10,7 @@ import { DataTransformationForm } from '@/components/forms/DataTransformationFor
 import { StatisticalModelingForm } from '@/components/forms/StatisticalModelingForm';
 import { ComparatorsForm } from '@/components/forms/ComparatorsForm';
 import { MultipleTestingCorrectionForm } from '@/components/forms/MultipleTestingCorrectionForm';
+import { VisualizationForm } from '@/components/forms/VisualizationForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 
@@ -62,6 +63,12 @@ interface PipelineState {
   correctionMethod: string;
   selectedAdditionalCorrectionMethods: string[];
   customCorrectionMethods: string;
+  
+  // Visualization
+  selectedGraphs: string[];
+  selectedTables: string[];
+  customVisualizations: string;
+  customTables: string;
 }
 
 const Index = () => {
@@ -96,6 +103,10 @@ const Index = () => {
     correctionMethod: '',
     selectedAdditionalCorrectionMethods: [],
     customCorrectionMethods: '',
+    selectedGraphs: [],
+    selectedTables: [],
+    customVisualizations: '',
+    customTables: '',
   });
 
   const steps = [
@@ -240,7 +251,18 @@ const Index = () => {
     {
       title: 'Visualization',
       description: 'Define output graphs and tables',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <VisualizationForm
+          selectedGraphs={pipelineState.selectedGraphs}
+          onGraphsChange={(graphs) => setPipelineState(prev => ({ ...prev, selectedGraphs: graphs }))}
+          selectedTables={pipelineState.selectedTables}
+          onTablesChange={(tables) => setPipelineState(prev => ({ ...prev, selectedTables: tables }))}
+          customVisualizations={pipelineState.customVisualizations}
+          onCustomVisualizationsChange={(visualizations) => setPipelineState(prev => ({ ...prev, customVisualizations: visualizations }))}
+          customTables={pipelineState.customTables}
+          onCustomTablesChange={(tables) => setPipelineState(prev => ({ ...prev, customTables: tables }))}
+        />
+      )
     },
     {
       title: 'Export',
