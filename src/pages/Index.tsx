@@ -11,6 +11,7 @@ import { StatisticalModelingForm } from '@/components/forms/StatisticalModelingF
 import { ComparatorsForm } from '@/components/forms/ComparatorsForm';
 import { MultipleTestingCorrectionForm } from '@/components/forms/MultipleTestingCorrectionForm';
 import { VisualizationForm } from '@/components/forms/VisualizationForm';
+import { ExportForm } from '@/components/forms/ExportForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 
@@ -69,6 +70,12 @@ interface PipelineState {
   selectedTables: string[];
   customVisualizations: string;
   customTables: string;
+  
+  // Export
+  selectedFormats: string[];
+  selectedReportSections: string[];
+  customExportOptions: string;
+  customReportSections: string;
 }
 
 const Index = () => {
@@ -107,6 +114,10 @@ const Index = () => {
     selectedTables: [],
     customVisualizations: '',
     customTables: '',
+    selectedFormats: [],
+    selectedReportSections: [],
+    customExportOptions: '',
+    customReportSections: '',
   });
 
   const steps = [
@@ -267,7 +278,18 @@ const Index = () => {
     {
       title: 'Export',
       description: 'Configure export formats and content',
-      component: <div className="p-4 text-center text-muted-foreground">Coming soon...</div>
+      component: (
+        <ExportForm
+          selectedFormats={pipelineState.selectedFormats}
+          onFormatsChange={(formats) => setPipelineState(prev => ({ ...prev, selectedFormats: formats }))}
+          selectedReportSections={pipelineState.selectedReportSections}
+          onReportSectionsChange={(sections) => setPipelineState(prev => ({ ...prev, selectedReportSections: sections }))}
+          customExportOptions={pipelineState.customExportOptions}
+          onCustomExportOptionsChange={(options) => setPipelineState(prev => ({ ...prev, customExportOptions: options }))}
+          customReportSections={pipelineState.customReportSections}
+          onCustomReportSectionsChange={(sections) => setPipelineState(prev => ({ ...prev, customReportSections: sections }))}
+        />
+      )
     },
   ];
 
