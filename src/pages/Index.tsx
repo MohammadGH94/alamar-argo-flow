@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { PipelineStep } from '@/components/PipelineStep';
 import { DataEntryForm } from '@/components/forms/DataEntryForm';
+import { PowerAnalysisForm } from '@/components/forms/PowerAnalysisForm';
 import { QCForm } from '@/components/forms/QCForm';
 import { LODHandlingForm } from '@/components/forms/LODHandlingForm';
+import { OutlierDetectionForm } from '@/components/forms/OutlierDetectionForm';
 import { NormalizationForm } from '@/components/forms/NormalizationForm';
+import { BatchEffectForm } from '@/components/forms/BatchEffectForm';
 import { ExploratoryAnalysisForm } from '@/components/forms/ExploratoryAnalysisForm';
 import { GroupComparisonForm } from '@/components/forms/GroupComparisonForm';
 import { DataTransformationForm } from '@/components/forms/DataTransformationForm';
 import { StatisticalModelingForm } from '@/components/forms/StatisticalModelingForm';
 import { ComparatorsForm } from '@/components/forms/ComparatorsForm';
 import { MultipleTestingCorrectionForm } from '@/components/forms/MultipleTestingCorrectionForm';
+import { SensitivityAnalysisForm } from '@/components/forms/SensitivityAnalysisForm';
 import { VisualizationForm } from '@/components/forms/VisualizationForm';
 import { ExportForm } from '@/components/forms/ExportForm';
 import { Button } from '@/components/ui/button';
@@ -19,6 +23,14 @@ interface PipelineState {
   // Data Entry
   selectedFileTypes: string[];
   additionalRequirements: string;
+  
+  // Power Analysis
+  powerAnalysisMethod: string;
+  selectedEffectSizes: string[];
+  powerLevel: string;
+  alphaLevel: string;
+  customEffectSize: string;
+  customPowerMethods: string;
   
   // QC
   selectedQCSteps: string[];
@@ -30,10 +42,24 @@ interface PipelineState {
   lodThreshold: string;
   customLODMethod: string;
   
+  // Outlier Detection
+  selectedDetectionMethods: string[];
+  selectedHandlingStrategies: string[];
+  zScoreThreshold: string;
+  iqrMultiplier: string;
+  customDetectionMethods: string;
+  
   // Normalization
   normalizationMethod: string;
   selectedBridgingOptions: string[];
   customNormalizationMethod: string;
+  
+  // Batch Effect
+  selectedBatchDetectionMethods: string[];
+  selectedBatchCorrectionMethod: string;
+  selectedBatchVariables: string[];
+  preservedVariables: string;
+  customBatchCorrectionMethod: string;
   
   // Exploratory Analysis
   selectedAnalysisMethods: string[];
@@ -65,6 +91,14 @@ interface PipelineState {
   selectedAdditionalCorrectionMethods: string[];
   customCorrectionMethods: string;
   
+  // Sensitivity Analysis
+  selectedSensitivityMethods: string[];
+  selectedParameterTypes: string[];
+  selectedRobustnessChecks: string[];
+  parameterRanges: string;
+  stabilityThreshold: string;
+  customSensitivityMethods: string;
+  
   // Visualization
   selectedGraphs: string[];
   selectedTables: string[];
@@ -83,15 +117,31 @@ const Index = () => {
   const [pipelineState, setPipelineState] = useState<PipelineState>({
     selectedFileTypes: [],
     additionalRequirements: '',
+    powerAnalysisMethod: '',
+    selectedEffectSizes: [],
+    powerLevel: '',
+    alphaLevel: '',
+    customEffectSize: '',
+    customPowerMethods: '',
     selectedQCSteps: [],
     qualityThreshold: '',
     customQCSteps: '',
     lodMethod: '',
     lodThreshold: '',
     customLODMethod: '',
+    selectedDetectionMethods: [],
+    selectedHandlingStrategies: [],
+    zScoreThreshold: '',
+    iqrMultiplier: '',
+    customDetectionMethods: '',
     normalizationMethod: '',
     selectedBridgingOptions: [],
     customNormalizationMethod: '',
+    selectedBatchDetectionMethods: [],
+    selectedBatchCorrectionMethod: '',
+    selectedBatchVariables: [],
+    preservedVariables: '',
+    customBatchCorrectionMethod: '',
     selectedAnalysisMethods: [],
     customAnalysisMethods: '',
     numberOfGroups: '',
@@ -110,6 +160,12 @@ const Index = () => {
     correctionMethod: '',
     selectedAdditionalCorrectionMethods: [],
     customCorrectionMethods: '',
+    selectedSensitivityMethods: [],
+    selectedParameterTypes: [],
+    selectedRobustnessChecks: [],
+    parameterRanges: '',
+    stabilityThreshold: '',
+    customSensitivityMethods: '',
     selectedGraphs: [],
     selectedTables: [],
     customVisualizations: '',
@@ -130,6 +186,26 @@ const Index = () => {
           onFileTypesChange={(types) => setPipelineState(prev => ({ ...prev, selectedFileTypes: types }))}
           additionalRequirements={pipelineState.additionalRequirements}
           onAdditionalRequirementsChange={(req) => setPipelineState(prev => ({ ...prev, additionalRequirements: req }))}
+        />
+      )
+    },
+    {
+      title: 'Power Analysis & Sample Size Calculation',
+      description: 'Determine adequate sample sizes and evaluate statistical power',
+      component: (
+        <PowerAnalysisForm
+          selectedMethod={pipelineState.powerAnalysisMethod}
+          onMethodChange={(method) => setPipelineState(prev => ({ ...prev, powerAnalysisMethod: method }))}
+          selectedEffectSizes={pipelineState.selectedEffectSizes}
+          onEffectSizesChange={(sizes) => setPipelineState(prev => ({ ...prev, selectedEffectSizes: sizes }))}
+          powerLevel={pipelineState.powerLevel}
+          onPowerLevelChange={(power) => setPipelineState(prev => ({ ...prev, powerLevel: power }))}
+          alphaLevel={pipelineState.alphaLevel}
+          onAlphaLevelChange={(alpha) => setPipelineState(prev => ({ ...prev, alphaLevel: alpha }))}
+          customEffectSize={pipelineState.customEffectSize}
+          onCustomEffectSizeChange={(size) => setPipelineState(prev => ({ ...prev, customEffectSize: size }))}
+          customMethods={pipelineState.customPowerMethods}
+          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customPowerMethods: methods }))}
         />
       )
     },
@@ -162,6 +238,24 @@ const Index = () => {
       )
     },
     {
+      title: 'Outlier Detection & Handling',
+      description: 'Identify and handle outlying observations in the dataset',
+      component: (
+        <OutlierDetectionForm
+          selectedDetectionMethods={pipelineState.selectedDetectionMethods}
+          onDetectionMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedDetectionMethods: methods }))}
+          selectedHandlingStrategies={pipelineState.selectedHandlingStrategies}
+          onHandlingStrategiesChange={(strategies) => setPipelineState(prev => ({ ...prev, selectedHandlingStrategies: strategies }))}
+          zScoreThreshold={pipelineState.zScoreThreshold}
+          onZScoreThresholdChange={(threshold) => setPipelineState(prev => ({ ...prev, zScoreThreshold: threshold }))}
+          iqrMultiplier={pipelineState.iqrMultiplier}
+          onIQRMultiplierChange={(multiplier) => setPipelineState(prev => ({ ...prev, iqrMultiplier: multiplier }))}
+          customDetectionMethods={pipelineState.customDetectionMethods}
+          onCustomDetectionMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customDetectionMethods: methods }))}
+        />
+      )
+    },
+    {
       title: 'Bridging & Normalization',
       description: 'Set up data normalization across plates and lots',
       component: (
@@ -172,6 +266,24 @@ const Index = () => {
           onBridgingOptionsChange={(options) => setPipelineState(prev => ({ ...prev, selectedBridgingOptions: options }))}
           customMethod={pipelineState.customNormalizationMethod}
           onCustomMethodChange={(method) => setPipelineState(prev => ({ ...prev, customNormalizationMethod: method }))}
+        />
+      )
+    },
+    {
+      title: 'Batch Effect Assessment & Correction',
+      description: 'Detect and correct batch effects in experimental data',
+      component: (
+        <BatchEffectForm
+          selectedDetectionMethods={pipelineState.selectedBatchDetectionMethods}
+          onDetectionMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedBatchDetectionMethods: methods }))}
+          selectedCorrectionMethod={pipelineState.selectedBatchCorrectionMethod}
+          onCorrectionMethodChange={(method) => setPipelineState(prev => ({ ...prev, selectedBatchCorrectionMethod: method }))}
+          selectedBatchVariables={pipelineState.selectedBatchVariables}
+          onBatchVariablesChange={(variables) => setPipelineState(prev => ({ ...prev, selectedBatchVariables: variables }))}
+          preservedVariables={pipelineState.preservedVariables}
+          onPreservedVariablesChange={(variables) => setPipelineState(prev => ({ ...prev, preservedVariables: variables }))}
+          customCorrectionMethod={pipelineState.customBatchCorrectionMethod}
+          onCustomCorrectionMethodChange={(method) => setPipelineState(prev => ({ ...prev, customBatchCorrectionMethod: method }))}
         />
       )
     },
@@ -256,6 +368,26 @@ const Index = () => {
           onAdditionalMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedAdditionalCorrectionMethods: methods }))}
           customMethods={pipelineState.customCorrectionMethods}
           onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customCorrectionMethods: methods }))}
+        />
+      )
+    },
+    {
+      title: 'Sensitivity Analysis',
+      description: 'Assess robustness and stability of analytical results',
+      component: (
+        <SensitivityAnalysisForm
+          selectedMethods={pipelineState.selectedSensitivityMethods}
+          onMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedSensitivityMethods: methods }))}
+          selectedParameterTypes={pipelineState.selectedParameterTypes}
+          onParameterTypesChange={(types) => setPipelineState(prev => ({ ...prev, selectedParameterTypes: types }))}
+          selectedRobustnessChecks={pipelineState.selectedRobustnessChecks}
+          onRobustnessChecksChange={(checks) => setPipelineState(prev => ({ ...prev, selectedRobustnessChecks: checks }))}
+          parameterRanges={pipelineState.parameterRanges}
+          onParameterRangesChange={(ranges) => setPipelineState(prev => ({ ...prev, parameterRanges: ranges }))}
+          stabilityThreshold={pipelineState.stabilityThreshold}
+          onStabilityThresholdChange={(threshold) => setPipelineState(prev => ({ ...prev, stabilityThreshold: threshold }))}
+          customMethods={pipelineState.customSensitivityMethods}
+          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customSensitivityMethods: methods }))}
         />
       )
     },
