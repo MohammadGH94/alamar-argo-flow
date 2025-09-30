@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { PipelineStep } from '@/components/PipelineStep';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, Circle, ChevronLeft, ChevronRight, RotateCcw, LogOut, BarChart3, Save } from "lucide-react";
+import { UserInfoForm } from "@/components/UserInfoForm";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+// Form components
 import { DataEntryForm } from '@/components/forms/DataEntryForm';
 import { PowerAnalysisForm } from '@/components/forms/PowerAnalysisForm';
 import { QCForm } from '@/components/forms/QCForm';
@@ -16,522 +26,938 @@ import { MultipleTestingCorrectionForm } from '@/components/forms/MultipleTestin
 import { SensitivityAnalysisForm } from '@/components/forms/SensitivityAnalysisForm';
 import { VisualizationForm } from '@/components/forms/VisualizationForm';
 import { ExportForm } from '@/components/forms/ExportForm';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Database } from 'lucide-react';
 
+// Pipeline state interface
 interface PipelineState {
-  // Data Entry
-  selectedFileTypes: string[];
-  additionalRequirements: string;
-  
-  // Power Analysis
-  powerAnalysisMethod: string;
-  selectedEffectSizes: string[];
-  powerLevel: string;
-  alphaLevel: string;
-  customEffectSize: string;
-  customPowerMethods: string;
-  
-  // QC
-  selectedQCSteps: string[];
-  qualityThreshold: string;
-  customQCSteps: string;
-  
-  // LOD Handling
-  lodMethod: string;
-  lodThreshold: string;
-  customLODMethod: string;
-  
-  // Outlier Detection
-  selectedDetectionMethods: string[];
-  selectedHandlingStrategies: string[];
-  zScoreThreshold: string;
-  iqrMultiplier: string;
-  customDetectionMethods: string;
-  
-  // Normalization
-  normalizationMethod: string;
-  selectedBridgingOptions: string[];
-  customNormalizationMethod: string;
-  
-  // Batch Effect
-  selectedBatchDetectionMethods: string[];
-  selectedBatchCorrectionMethod: string;
-  selectedBatchVariables: string[];
-  preservedVariables: string;
-  customBatchCorrectionMethod: string;
-  
-  // Exploratory Analysis
-  selectedAnalysisMethods: string[];
-  customAnalysisMethods: string;
-  
-  // Group Comparison
-  numberOfGroups: string;
-  dataType: string;
-  timePoints: string;
-  selectedModels: string[];
-  useMachineLearning: boolean;
-  
-  // Data Transformation
-  selectedTransformations: string[];
-  customTransformations: string;
-  
-  // Statistical Modeling
-  selectedDiagnostics: string[];
-  customDiagnostics: string;
-  
-  // Comparators
-  selectedContrasts: string[];
-  selectedExtractionValues: string[];
-  customContrasts: string;
-  customExtractionValues: string;
-  
-  // Multiple Testing Correction
-  correctionMethod: string;
-  selectedAdditionalCorrectionMethods: string[];
-  customCorrectionMethods: string;
-  
-  // Sensitivity Analysis
-  selectedSensitivityMethods: string[];
-  selectedParameterTypes: string[];
-  selectedRobustnessChecks: string[];
-  parameterRanges: string;
-  stabilityThreshold: string;
-  customSensitivityMethods: string;
-  
-  // Visualization
-  selectedGraphs: string[];
-  selectedTables: string[];
-  customVisualizations: string;
-  customTables: string;
-  
-  // Export
-  selectedFormats: string[];
-  selectedReportSections: string[];
-  customExportOptions: string;
-  customReportSections: string;
+  userInfo: {
+    name: string;
+    email: string;
+  };
+  dataEntry: {
+    selectedFileTypes: string[];
+    additionalRequirements: string;
+  };
+  powerAnalysis: {
+    selectedMethods: string[];
+    effectSize: string;
+    powerLevel: string;
+    alphaLevel: string;
+    customMethods: string;
+  };
+  qc: {
+    selectedMethods: string[];
+    qualityThreshold: string;
+    customMethods: string;
+  };
+  lodHandling: {
+    selectedMethods: string[];
+    threshold: string;
+    customMethods: string;
+  };
+  outlierDetection: {
+    selectedMethods: string[];
+    handlingStrategies: string[];
+    zScoreThreshold: string;
+    iqrMultiplier: string;
+    customMethods: string;
+  };
+  normalization: {
+    selectedMethods: string[];
+    referenceGroup: string;
+    customMethods: string;
+  };
+  batchEffect: {
+    selectedMethods: string[];
+    batchVariables: string;
+    customMethods: string;
+  };
+  exploratoryAnalysis: {
+    selectedMethods: string[];
+    customMethods: string;
+  };
+  groupComparison: {
+    numberOfGroups: number;
+    timePoints: number;
+    dataType: string;
+    selectedModels: string[];
+    useMachineLearning: boolean;
+  };
+  dataTransformation: {
+    selectedTransformations: string[];
+    customTransformations: string;
+  };
+  statisticalModeling: {
+    selectedMethods: string[];
+    confidenceLevel: string;
+    customMethods: string;
+  };
+  comparators: {
+    selectedMethods: string[];
+    referenceGroup: string;
+    customMethods: string;
+  };
+  multipleTestingCorrection: {
+    selectedMethods: string[];
+    alphaLevel: string;
+    customMethods: string;
+  };
+  sensitivityAnalysis: {
+    selectedMethods: string[];
+    parameterRanges: string;
+    customMethods: string;
+  };
+  visualization: {
+    selectedTypes: string[];
+    customTypes: string;
+  };
+  export: {
+    selectedFormats: string[];
+    selectedReportSections: string[];
+    customOptions: string;
+    customReportSections: string;
+  };
 }
 
 const Index = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(-1); // Start with user info form (-1)
   const [pipelineState, setPipelineState] = useState<PipelineState>({
-    selectedFileTypes: [],
-    additionalRequirements: '',
-    powerAnalysisMethod: '',
-    selectedEffectSizes: [],
-    powerLevel: '',
-    alphaLevel: '',
-    customEffectSize: '',
-    customPowerMethods: '',
-    selectedQCSteps: [],
-    qualityThreshold: '',
-    customQCSteps: '',
-    lodMethod: '',
-    lodThreshold: '',
-    customLODMethod: '',
-    selectedDetectionMethods: [],
-    selectedHandlingStrategies: [],
-    zScoreThreshold: '',
-    iqrMultiplier: '',
-    customDetectionMethods: '',
-    normalizationMethod: '',
-    selectedBridgingOptions: [],
-    customNormalizationMethod: '',
-    selectedBatchDetectionMethods: [],
-    selectedBatchCorrectionMethod: '',
-    selectedBatchVariables: [],
-    preservedVariables: '',
-    customBatchCorrectionMethod: '',
-    selectedAnalysisMethods: [],
-    customAnalysisMethods: '',
-    numberOfGroups: '',
-    dataType: '',
-    timePoints: '',
-    selectedModels: [],
-    useMachineLearning: false,
-    selectedTransformations: [],
-    customTransformations: '',
-    selectedDiagnostics: [],
-    customDiagnostics: '',
-    selectedContrasts: [],
-    selectedExtractionValues: [],
-    customContrasts: '',
-    customExtractionValues: '',
-    correctionMethod: '',
-    selectedAdditionalCorrectionMethods: [],
-    customCorrectionMethods: '',
-    selectedSensitivityMethods: [],
-    selectedParameterTypes: [],
-    selectedRobustnessChecks: [],
-    parameterRanges: '',
-    stabilityThreshold: '',
-    customSensitivityMethods: '',
-    selectedGraphs: [],
-    selectedTables: [],
-    customVisualizations: '',
-    customTables: '',
-    selectedFormats: [],
-    selectedReportSections: [],
-    customExportOptions: '',
-    customReportSections: '',
+    userInfo: {
+      name: '',
+      email: ''
+    },
+    dataEntry: {
+      selectedFileTypes: [],
+      additionalRequirements: ''
+    },
+    powerAnalysis: {
+      selectedMethods: [],
+      effectSize: '',
+      powerLevel: '0.8',
+      alphaLevel: '0.05',
+      customMethods: ''
+    },
+    qc: {
+      selectedMethods: [],
+      qualityThreshold: '',
+      customMethods: ''
+    },
+    lodHandling: {
+      selectedMethods: [],
+      threshold: '',
+      customMethods: ''
+    },
+    outlierDetection: {
+      selectedMethods: [],
+      handlingStrategies: [],
+      zScoreThreshold: '3',
+      iqrMultiplier: '1.5',
+      customMethods: ''
+    },
+    normalization: {
+      selectedMethods: [],
+      referenceGroup: '',
+      customMethods: ''
+    },
+    batchEffect: {
+      selectedMethods: [],
+      batchVariables: '',
+      customMethods: ''
+    },
+    exploratoryAnalysis: {
+      selectedMethods: [],
+      customMethods: ''
+    },
+    groupComparison: {
+      numberOfGroups: 2,
+      timePoints: 1,
+      dataType: 'cross-sectional',
+      selectedModels: [],
+      useMachineLearning: false
+    },
+    dataTransformation: {
+      selectedTransformations: [],
+      customTransformations: ''
+    },
+    statisticalModeling: {
+      selectedMethods: [],
+      confidenceLevel: '95',
+      customMethods: ''
+    },
+    comparators: {
+      selectedMethods: [],
+      referenceGroup: '',
+      customMethods: ''
+    },
+    multipleTestingCorrection: {
+      selectedMethods: [],
+      alphaLevel: '0.05',
+      customMethods: ''
+    },
+    sensitivityAnalysis: {
+      selectedMethods: [],
+      parameterRanges: '',
+      customMethods: ''
+    },
+    visualization: {
+      selectedTypes: [],
+      customTypes: ''
+    },
+    export: {
+      selectedFormats: [],
+      selectedReportSections: [],
+      customOptions: '',
+      customReportSections: ''
+    }
   });
+
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  const savePipelineData = async (status: 'draft' | 'completed' = 'draft') => {
+    if (!user || !pipelineState.userInfo.name) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('save-pipeline', {
+        body: {
+          pipelineData: pipelineState,
+          userName: pipelineState.userInfo.name,
+          status
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: status === 'completed' ? "Pipeline completed!" : "Progress saved",
+        description: status === 'completed' 
+          ? "Your pipeline configuration has been completed and saved."
+          : "Your progress has been saved automatically.",
+      });
+    } catch (error) {
+      console.error('Error saving pipeline:', error);
+      toast({
+        title: "Error saving progress",
+        description: "There was an issue saving your progress. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUserInfoSubmit = (userInfo: { name: string; email: string }) => {
+    setPipelineState(prev => ({
+      ...prev,
+      userInfo
+    }));
+    setCurrentStep(0);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-2 text-muted-foreground">Loading...</p>
+      </div>
+    </div>;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  // Show user info form first
+  if (currentStep === -1) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <header className="mb-8">
+          <div className="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Alamar Argo</h1>
+              <p className="text-muted-foreground">Analytical Pipeline Builder</p>
+            </div>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </header>
+        
+        <UserInfoForm onSubmit={handleUserInfoSubmit} />
+      </div>
+    );
+  }
 
   const steps = [
     {
-      title: 'Data Entry',
-      description: 'Configure file types and data requirements for input',
+      title: "Data Entry",
+      description: "Configure data input and file type requirements",
       component: (
         <DataEntryForm
-          selectedFileTypes={pipelineState.selectedFileTypes}
-          onFileTypesChange={(types) => setPipelineState(prev => ({ ...prev, selectedFileTypes: types }))}
-          additionalRequirements={pipelineState.additionalRequirements}
-          onAdditionalRequirementsChange={(req) => setPipelineState(prev => ({ ...prev, additionalRequirements: req }))}
+          selectedFileTypes={pipelineState.dataEntry.selectedFileTypes}
+          onFileTypesChange={(types) => 
+            setPipelineState(prev => ({
+              ...prev,
+              dataEntry: { ...prev.dataEntry, selectedFileTypes: types }
+            }))
+          }
+          additionalRequirements={pipelineState.dataEntry.additionalRequirements}
+          onAdditionalRequirementsChange={(requirements) =>
+            setPipelineState(prev => ({
+              ...prev,
+              dataEntry: { ...prev.dataEntry, additionalRequirements: requirements }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Power Analysis & Sample Size Calculation',
-      description: 'Determine adequate sample sizes and evaluate statistical power',
+      title: "Power Analysis & Sample Size Calculation",
+      description: "Determine statistical power and calculate required sample sizes",
       component: (
         <PowerAnalysisForm
-          selectedMethod={pipelineState.powerAnalysisMethod}
-          onMethodChange={(method) => setPipelineState(prev => ({ ...prev, powerAnalysisMethod: method }))}
-          selectedEffectSizes={pipelineState.selectedEffectSizes}
-          onEffectSizesChange={(sizes) => setPipelineState(prev => ({ ...prev, selectedEffectSizes: sizes }))}
-          powerLevel={pipelineState.powerLevel}
-          onPowerLevelChange={(power) => setPipelineState(prev => ({ ...prev, powerLevel: power }))}
-          alphaLevel={pipelineState.alphaLevel}
-          onAlphaLevelChange={(alpha) => setPipelineState(prev => ({ ...prev, alphaLevel: alpha }))}
-          customEffectSize={pipelineState.customEffectSize}
-          onCustomEffectSizeChange={(size) => setPipelineState(prev => ({ ...prev, customEffectSize: size }))}
-          customMethods={pipelineState.customPowerMethods}
-          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customPowerMethods: methods }))}
+          selectedMethods={pipelineState.powerAnalysis.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              powerAnalysis: { ...prev.powerAnalysis, selectedMethods: methods }
+            }))
+          }
+          effectSize={pipelineState.powerAnalysis.effectSize}
+          onEffectSizeChange={(size) =>
+            setPipelineState(prev => ({
+              ...prev,
+              powerAnalysis: { ...prev.powerAnalysis, effectSize: size }
+            }))
+          }
+          powerLevel={pipelineState.powerAnalysis.powerLevel}
+          onPowerLevelChange={(level) =>
+            setPipelineState(prev => ({
+              ...prev,
+              powerAnalysis: { ...prev.powerAnalysis, powerLevel: level }
+            }))
+          }
+          alphaLevel={pipelineState.powerAnalysis.alphaLevel}
+          onAlphaLevelChange={(level) =>
+            setPipelineState(prev => ({
+              ...prev,
+              powerAnalysis: { ...prev.powerAnalysis, alphaLevel: level }
+            }))
+          }
+          customMethods={pipelineState.powerAnalysis.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              powerAnalysis: { ...prev.powerAnalysis, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Quality Control',
-      description: 'Define quality control procedures and validation steps',
+      title: "Quality Control",
+      description: "Define quality control measures and thresholds",
       component: (
         <QCForm
-          selectedQCSteps={pipelineState.selectedQCSteps}
-          onQCStepsChange={(steps) => setPipelineState(prev => ({ ...prev, selectedQCSteps: steps }))}
-          qualityThreshold={pipelineState.qualityThreshold}
-          onQualityThresholdChange={(threshold) => setPipelineState(prev => ({ ...prev, qualityThreshold: threshold }))}
-          customQCSteps={pipelineState.customQCSteps}
-          onCustomQCStepsChange={(steps) => setPipelineState(prev => ({ ...prev, customQCSteps: steps }))}
+          selectedMethods={pipelineState.qc.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              qc: { ...prev.qc, selectedMethods: methods }
+            }))
+          }
+          qualityThreshold={pipelineState.qc.qualityThreshold}
+          onQualityThresholdChange={(threshold) =>
+            setPipelineState(prev => ({
+              ...prev,
+              qc: { ...prev.qc, qualityThreshold: threshold }
+            }))
+          }
+          customMethods={pipelineState.qc.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              qc: { ...prev.qc, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'LOD Handling',
-      description: 'Configure how to handle below limit of detection values',
+      title: "LOD Handling",
+      description: "Configure limit of detection handling strategies",
       component: (
         <LODHandlingForm
-          selectedMethod={pipelineState.lodMethod}
-          onMethodChange={(method) => setPipelineState(prev => ({ ...prev, lodMethod: method }))}
-          lodThreshold={pipelineState.lodThreshold}
-          onLODThresholdChange={(threshold) => setPipelineState(prev => ({ ...prev, lodThreshold: threshold }))}
-          customMethod={pipelineState.customLODMethod}
-          onCustomMethodChange={(method) => setPipelineState(prev => ({ ...prev, customLODMethod: method }))}
+          selectedMethods={pipelineState.lodHandling.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              lodHandling: { ...prev.lodHandling, selectedMethods: methods }
+            }))
+          }
+          threshold={pipelineState.lodHandling.threshold}
+          onThresholdChange={(threshold) =>
+            setPipelineState(prev => ({
+              ...prev,
+              lodHandling: { ...prev.lodHandling, threshold }
+            }))
+          }
+          customMethods={pipelineState.lodHandling.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              lodHandling: { ...prev.lodHandling, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Outlier Detection & Handling',
-      description: 'Identify and handle outlying observations in the dataset',
+      title: "Outlier Detection & Handling",
+      description: "Identify and handle outliers in your data",
       component: (
         <OutlierDetectionForm
-          selectedDetectionMethods={pipelineState.selectedDetectionMethods}
-          onDetectionMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedDetectionMethods: methods }))}
-          selectedHandlingStrategies={pipelineState.selectedHandlingStrategies}
-          onHandlingStrategiesChange={(strategies) => setPipelineState(prev => ({ ...prev, selectedHandlingStrategies: strategies }))}
-          zScoreThreshold={pipelineState.zScoreThreshold}
-          onZScoreThresholdChange={(threshold) => setPipelineState(prev => ({ ...prev, zScoreThreshold: threshold }))}
-          iqrMultiplier={pipelineState.iqrMultiplier}
-          onIQRMultiplierChange={(multiplier) => setPipelineState(prev => ({ ...prev, iqrMultiplier: multiplier }))}
-          customDetectionMethods={pipelineState.customDetectionMethods}
-          onCustomDetectionMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customDetectionMethods: methods }))}
+          selectedMethods={pipelineState.outlierDetection.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              outlierDetection: { ...prev.outlierDetection, selectedMethods: methods }
+            }))
+          }
+          handlingStrategies={pipelineState.outlierDetection.handlingStrategies}
+          onHandlingStrategiesChange={(strategies) =>
+            setPipelineState(prev => ({
+              ...prev,
+              outlierDetection: { ...prev.outlierDetection, handlingStrategies: strategies }
+            }))
+          }
+          zScoreThreshold={pipelineState.outlierDetection.zScoreThreshold}
+          onZScoreThresholdChange={(threshold) =>
+            setPipelineState(prev => ({
+              ...prev,
+              outlierDetection: { ...prev.outlierDetection, zScoreThreshold: threshold }
+            }))
+          }
+          iqrMultiplier={pipelineState.outlierDetection.iqrMultiplier}
+          onIqrMultiplierChange={(multiplier) =>
+            setPipelineState(prev => ({
+              ...prev,
+              outlierDetection: { ...prev.outlierDetection, iqrMultiplier: multiplier }
+            }))
+          }
+          customMethods={pipelineState.outlierDetection.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              outlierDetection: { ...prev.outlierDetection, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Bridging & Normalization',
-      description: 'Set up data normalization across plates and lots',
+      title: "Bridging & Normalization",
+      description: "Configure data bridging and normalization methods",
       component: (
         <NormalizationForm
-          selectedMethod={pipelineState.normalizationMethod}
-          onMethodChange={(method) => setPipelineState(prev => ({ ...prev, normalizationMethod: method }))}
-          selectedBridgingOptions={pipelineState.selectedBridgingOptions}
-          onBridgingOptionsChange={(options) => setPipelineState(prev => ({ ...prev, selectedBridgingOptions: options }))}
-          customMethod={pipelineState.customNormalizationMethod}
-          onCustomMethodChange={(method) => setPipelineState(prev => ({ ...prev, customNormalizationMethod: method }))}
+          selectedMethods={pipelineState.normalization.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              normalization: { ...prev.normalization, selectedMethods: methods }
+            }))
+          }
+          referenceGroup={pipelineState.normalization.referenceGroup}
+          onReferenceGroupChange={(group) =>
+            setPipelineState(prev => ({
+              ...prev,
+              normalization: { ...prev.normalization, referenceGroup: group }
+            }))
+          }
+          customMethods={pipelineState.normalization.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              normalization: { ...prev.normalization, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Batch Effect Assessment & Correction',
-      description: 'Detect and correct batch effects in experimental data',
+      title: "Batch Effect Assessment & Correction",
+      description: "Detect and correct for batch effects in your data",
       component: (
         <BatchEffectForm
-          selectedDetectionMethods={pipelineState.selectedBatchDetectionMethods}
-          onDetectionMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedBatchDetectionMethods: methods }))}
-          selectedCorrectionMethod={pipelineState.selectedBatchCorrectionMethod}
-          onCorrectionMethodChange={(method) => setPipelineState(prev => ({ ...prev, selectedBatchCorrectionMethod: method }))}
-          selectedBatchVariables={pipelineState.selectedBatchVariables}
-          onBatchVariablesChange={(variables) => setPipelineState(prev => ({ ...prev, selectedBatchVariables: variables }))}
-          preservedVariables={pipelineState.preservedVariables}
-          onPreservedVariablesChange={(variables) => setPipelineState(prev => ({ ...prev, preservedVariables: variables }))}
-          customCorrectionMethod={pipelineState.customBatchCorrectionMethod}
-          onCustomCorrectionMethodChange={(method) => setPipelineState(prev => ({ ...prev, customBatchCorrectionMethod: method }))}
+          selectedMethods={pipelineState.batchEffect.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              batchEffect: { ...prev.batchEffect, selectedMethods: methods }
+            }))
+          }
+          batchVariables={pipelineState.batchEffect.batchVariables}
+          onBatchVariablesChange={(variables) =>
+            setPipelineState(prev => ({
+              ...prev,
+              batchEffect: { ...prev.batchEffect, batchVariables: variables }
+            }))
+          }
+          customMethods={pipelineState.batchEffect.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              batchEffect: { ...prev.batchEffect, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Exploratory Analysis',
-      description: 'Configure exploratory data analysis methods',
+      title: "Exploratory Analysis",
+      description: "Define exploratory data analysis methods",
       component: (
         <ExploratoryAnalysisForm
-          selectedMethods={pipelineState.selectedAnalysisMethods}
-          onMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedAnalysisMethods: methods }))}
-          customMethods={pipelineState.customAnalysisMethods}
-          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customAnalysisMethods: methods }))}
+          selectedMethods={pipelineState.exploratoryAnalysis.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              exploratoryAnalysis: { ...prev.exploratoryAnalysis, selectedMethods: methods }
+            }))
+          }
+          customMethods={pipelineState.exploratoryAnalysis.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              exploratoryAnalysis: { ...prev.exploratoryAnalysis, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Group Comparison',
-      description: 'Set up group-based statistical comparisons',
+      title: "Group Comparison",
+      description: "Configure group comparison and study design parameters",
       component: (
         <GroupComparisonForm
-          numberOfGroups={pipelineState.numberOfGroups}
-          onNumberOfGroupsChange={(value) => setPipelineState(prev => ({ ...prev, numberOfGroups: value }))}
-          dataType={pipelineState.dataType}
-          onDataTypeChange={(value) => setPipelineState(prev => ({ ...prev, dataType: value }))}
-          timePoints={pipelineState.timePoints}
-          onTimePointsChange={(value) => setPipelineState(prev => ({ ...prev, timePoints: value }))}
-          selectedModels={pipelineState.selectedModels}
-          onModelsChange={(models) => setPipelineState(prev => ({ ...prev, selectedModels: models }))}
-          useMachineLearning={pipelineState.useMachineLearning}
-          onMachineLearningChange={(value) => setPipelineState(prev => ({ ...prev, useMachineLearning: value }))}
+          numberOfGroups={pipelineState.groupComparison.numberOfGroups}
+          onNumberOfGroupsChange={(groups) =>
+            setPipelineState(prev => ({
+              ...prev,
+              groupComparison: { ...prev.groupComparison, numberOfGroups: groups }
+            }))
+          }
+          timePoints={pipelineState.groupComparison.timePoints}
+          onTimePointsChange={(points) =>
+            setPipelineState(prev => ({
+              ...prev,
+              groupComparison: { ...prev.groupComparison, timePoints: points }
+            }))
+          }
+          dataType={pipelineState.groupComparison.dataType}
+          onDataTypeChange={(type) =>
+            setPipelineState(prev => ({
+              ...prev,
+              groupComparison: { ...prev.groupComparison, dataType: type }
+            }))
+          }
+          selectedModels={pipelineState.groupComparison.selectedModels}
+          onSelectedModelsChange={(models) =>
+            setPipelineState(prev => ({
+              ...prev,
+              groupComparison: { ...prev.groupComparison, selectedModels: models }
+            }))
+          }
+          useMachineLearning={pipelineState.groupComparison.useMachineLearning}
+          onUseMachineLearningChange={(use) =>
+            setPipelineState(prev => ({
+              ...prev,
+              groupComparison: { ...prev.groupComparison, useMachineLearning: use }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Data Transformation',
-      description: 'Configure data transformation algorithms',
+      title: "Data Transformation",
+      description: "Select and configure data transformation methods",
       component: (
         <DataTransformationForm
-          selectedTransformations={pipelineState.selectedTransformations}
-          onTransformationsChange={(transformations) => setPipelineState(prev => ({ ...prev, selectedTransformations: transformations }))}
-          customTransformations={pipelineState.customTransformations}
-          onCustomTransformationsChange={(transformations) => setPipelineState(prev => ({ ...prev, customTransformations: transformations }))}
+          selectedTransformations={pipelineState.dataTransformation.selectedTransformations}
+          onTransformationsChange={(transformations) =>
+            setPipelineState(prev => ({
+              ...prev,
+              dataTransformation: { ...prev.dataTransformation, selectedTransformations: transformations }
+            }))
+          }
+          customTransformations={pipelineState.dataTransformation.customTransformations}
+          onCustomTransformationsChange={(transformations) =>
+            setPipelineState(prev => ({
+              ...prev,
+              dataTransformation: { ...prev.dataTransformation, customTransformations: transformations }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Statistical Modeling',
-      description: 'Define model diagnostics and validation',
+      title: "Statistical Modeling",
+      description: "Configure statistical modeling approaches",
       component: (
         <StatisticalModelingForm
-          selectedDiagnostics={pipelineState.selectedDiagnostics}
-          onDiagnosticsChange={(diagnostics) => setPipelineState(prev => ({ ...prev, selectedDiagnostics: diagnostics }))}
-          customDiagnostics={pipelineState.customDiagnostics}
-          onCustomDiagnosticsChange={(diagnostics) => setPipelineState(prev => ({ ...prev, customDiagnostics: diagnostics }))}
+          selectedMethods={pipelineState.statisticalModeling.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              statisticalModeling: { ...prev.statisticalModeling, selectedMethods: methods }
+            }))
+          }
+          confidenceLevel={pipelineState.statisticalModeling.confidenceLevel}
+          onConfidenceLevelChange={(level) =>
+            setPipelineState(prev => ({
+              ...prev,
+              statisticalModeling: { ...prev.statisticalModeling, confidenceLevel: level }
+            }))
+          }
+          customMethods={pipelineState.statisticalModeling.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              statisticalModeling: { ...prev.statisticalModeling, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Comparators',
-      description: 'Select values to extract from models',
+      title: "Comparators",
+      description: "Define comparison strategies and reference groups",
       component: (
         <ComparatorsForm
-          selectedContrasts={pipelineState.selectedContrasts}
-          onContrastsChange={(contrasts) => setPipelineState(prev => ({ ...prev, selectedContrasts: contrasts }))}
-          selectedExtractionValues={pipelineState.selectedExtractionValues}
-          onExtractionValuesChange={(values) => setPipelineState(prev => ({ ...prev, selectedExtractionValues: values }))}
-          customContrasts={pipelineState.customContrasts}
-          onCustomContrastsChange={(contrasts) => setPipelineState(prev => ({ ...prev, customContrasts: contrasts }))}
-          customExtractionValues={pipelineState.customExtractionValues}
-          onCustomExtractionValuesChange={(values) => setPipelineState(prev => ({ ...prev, customExtractionValues: values }))}
+          selectedMethods={pipelineState.comparators.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              comparators: { ...prev.comparators, selectedMethods: methods }
+            }))
+          }
+          referenceGroup={pipelineState.comparators.referenceGroup}
+          onReferenceGroupChange={(group) =>
+            setPipelineState(prev => ({
+              ...prev,
+              comparators: { ...prev.comparators, referenceGroup: group }
+            }))
+          }
+          customMethods={pipelineState.comparators.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              comparators: { ...prev.comparators, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Multiple Testing Correction',
-      description: 'Configure multiple comparison correction methods',
+      title: "Multiple Testing Correction",
+      description: "Configure multiple testing correction methods",
       component: (
         <MultipleTestingCorrectionForm
-          selectedMethod={pipelineState.correctionMethod}
-          onMethodChange={(method) => setPipelineState(prev => ({ ...prev, correctionMethod: method }))}
-          selectedAdditionalMethods={pipelineState.selectedAdditionalCorrectionMethods}
-          onAdditionalMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedAdditionalCorrectionMethods: methods }))}
-          customMethods={pipelineState.customCorrectionMethods}
-          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customCorrectionMethods: methods }))}
+          selectedMethods={pipelineState.multipleTestingCorrection.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              multipleTestingCorrection: { ...prev.multipleTestingCorrection, selectedMethods: methods }
+            }))
+          }
+          alphaLevel={pipelineState.multipleTestingCorrection.alphaLevel}
+          onAlphaLevelChange={(level) =>
+            setPipelineState(prev => ({
+              ...prev,
+              multipleTestingCorrection: { ...prev.multipleTestingCorrection, alphaLevel: level }
+            }))
+          }
+          customMethods={pipelineState.multipleTestingCorrection.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              multipleTestingCorrection: { ...prev.multipleTestingCorrection, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Sensitivity Analysis',
-      description: 'Assess robustness and stability of analytical results',
+      title: "Sensitivity Analysis",
+      description: "Configure sensitivity analysis and robustness testing",
       component: (
         <SensitivityAnalysisForm
-          selectedMethods={pipelineState.selectedSensitivityMethods}
-          onMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, selectedSensitivityMethods: methods }))}
-          selectedParameterTypes={pipelineState.selectedParameterTypes}
-          onParameterTypesChange={(types) => setPipelineState(prev => ({ ...prev, selectedParameterTypes: types }))}
-          selectedRobustnessChecks={pipelineState.selectedRobustnessChecks}
-          onRobustnessChecksChange={(checks) => setPipelineState(prev => ({ ...prev, selectedRobustnessChecks: checks }))}
-          parameterRanges={pipelineState.parameterRanges}
-          onParameterRangesChange={(ranges) => setPipelineState(prev => ({ ...prev, parameterRanges: ranges }))}
-          stabilityThreshold={pipelineState.stabilityThreshold}
-          onStabilityThresholdChange={(threshold) => setPipelineState(prev => ({ ...prev, stabilityThreshold: threshold }))}
-          customMethods={pipelineState.customSensitivityMethods}
-          onCustomMethodsChange={(methods) => setPipelineState(prev => ({ ...prev, customSensitivityMethods: methods }))}
+          selectedMethods={pipelineState.sensitivityAnalysis.selectedMethods}
+          onMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              sensitivityAnalysis: { ...prev.sensitivityAnalysis, selectedMethods: methods }
+            }))
+          }
+          parameterRanges={pipelineState.sensitivityAnalysis.parameterRanges}
+          onParameterRangesChange={(ranges) =>
+            setPipelineState(prev => ({
+              ...prev,
+              sensitivityAnalysis: { ...prev.sensitivityAnalysis, parameterRanges: ranges }
+            }))
+          }
+          customMethods={pipelineState.sensitivityAnalysis.customMethods}
+          onCustomMethodsChange={(methods) =>
+            setPipelineState(prev => ({
+              ...prev,
+              sensitivityAnalysis: { ...prev.sensitivityAnalysis, customMethods: methods }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Visualization',
-      description: 'Define output graphs and tables',
+      title: "Visualization",
+      description: "Select visualization types and configure output formats",
       component: (
         <VisualizationForm
-          selectedGraphs={pipelineState.selectedGraphs}
-          onGraphsChange={(graphs) => setPipelineState(prev => ({ ...prev, selectedGraphs: graphs }))}
-          selectedTables={pipelineState.selectedTables}
-          onTablesChange={(tables) => setPipelineState(prev => ({ ...prev, selectedTables: tables }))}
-          customVisualizations={pipelineState.customVisualizations}
-          onCustomVisualizationsChange={(visualizations) => setPipelineState(prev => ({ ...prev, customVisualizations: visualizations }))}
-          customTables={pipelineState.customTables}
-          onCustomTablesChange={(tables) => setPipelineState(prev => ({ ...prev, customTables: tables }))}
+          selectedTypes={pipelineState.visualization.selectedTypes}
+          onTypesChange={(types) =>
+            setPipelineState(prev => ({
+              ...prev,
+              visualization: { ...prev.visualization, selectedTypes: types }
+            }))
+          }
+          customTypes={pipelineState.visualization.customTypes}
+          onCustomTypesChange={(types) =>
+            setPipelineState(prev => ({
+              ...prev,
+              visualization: { ...prev.visualization, customTypes: types }
+            }))
+          }
         />
       )
     },
     {
-      title: 'Export',
-      description: 'Configure export formats and content',
+      title: "Export",
+      description: "Configure export formats and report generation",
       component: (
         <ExportForm
-          selectedFormats={pipelineState.selectedFormats}
-          onFormatsChange={(formats) => setPipelineState(prev => ({ ...prev, selectedFormats: formats }))}
-          selectedReportSections={pipelineState.selectedReportSections}
-          onReportSectionsChange={(sections) => setPipelineState(prev => ({ ...prev, selectedReportSections: sections }))}
-          customExportOptions={pipelineState.customExportOptions}
-          onCustomExportOptionsChange={(options) => setPipelineState(prev => ({ ...prev, customExportOptions: options }))}
-          customReportSections={pipelineState.customReportSections}
-          onCustomReportSectionsChange={(sections) => setPipelineState(prev => ({ ...prev, customReportSections: sections }))}
+          selectedFormats={pipelineState.export.selectedFormats}
+          onFormatsChange={(formats) =>
+            setPipelineState(prev => ({
+              ...prev,
+              export: { ...prev.export, selectedFormats: formats }
+            }))
+          }
+          selectedReportSections={pipelineState.export.selectedReportSections}
+          onReportSectionsChange={(sections) =>
+            setPipelineState(prev => ({
+              ...prev,
+              export: { ...prev.export, selectedReportSections: sections }
+            }))
+          }
+          customOptions={pipelineState.export.customOptions}
+          onCustomOptionsChange={(options) =>
+            setPipelineState(prev => ({
+              ...prev,
+              export: { ...prev.export, customOptions: options }
+            }))
+          }
+          customReportSections={pipelineState.export.customReportSections}
+          onCustomReportSectionsChange={(sections) =>
+            setPipelineState(prev => ({
+              ...prev,
+              export: { ...prev.export, customReportSections: sections }
+            }))
+          }
         />
       )
-    },
+    }
   ];
 
-  const handleNext = () => {
-    if (currentStep < steps.length) {
+  const handleNext = async () => {
+    if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+      // Auto-save progress
+      await savePipelineData('draft');
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else if (currentStep === 0) {
+      setCurrentStep(-1); // Go back to user info
     }
   };
 
-  const getStepStatus = (stepNumber: number) => {
-    if (stepNumber < currentStep) return 'completed';
-    if (stepNumber === currentStep) return 'current';
-    return 'pending';
+  const handleRestart = () => {
+    setCurrentStep(-1);
+    setPipelineState({
+      userInfo: { name: '', email: '' },
+      dataEntry: { selectedFileTypes: [], additionalRequirements: '' },
+      powerAnalysis: { selectedMethods: [], effectSize: '', powerLevel: '0.8', alphaLevel: '0.05', customMethods: '' },
+      qc: { selectedMethods: [], qualityThreshold: '', customMethods: '' },
+      lodHandling: { selectedMethods: [], threshold: '', customMethods: '' },
+      outlierDetection: { selectedMethods: [], handlingStrategies: [], zScoreThreshold: '3', iqrMultiplier: '1.5', customMethods: '' },
+      normalization: { selectedMethods: [], referenceGroup: '', customMethods: '' },
+      batchEffect: { selectedMethods: [], batchVariables: '', customMethods: '' },
+      exploratoryAnalysis: { selectedMethods: [], customMethods: '' },
+      groupComparison: { numberOfGroups: 2, timePoints: 1, dataType: 'cross-sectional', selectedModels: [], useMachineLearning: false },
+      dataTransformation: { selectedTransformations: [], customTransformations: '' },
+      statisticalModeling: { selectedMethods: [], confidenceLevel: '95', customMethods: '' },
+      comparators: { selectedMethods: [], referenceGroup: '', customMethods: '' },
+      multipleTestingCorrection: { selectedMethods: [], alphaLevel: '0.05', customMethods: '' },
+      sensitivityAnalysis: { selectedMethods: [], parameterRanges: '', customMethods: '' },
+      visualization: { selectedTypes: [], customTypes: '' },
+      export: { selectedFormats: [], selectedReportSections: [], customOptions: '', customReportSections: '' }
+    });
+  };
+
+  const getStepStatus = (stepIndex: number) => {
+    if (stepIndex < currentStep) return 'completed';
+    if (stepIndex === currentStep) return 'current';
+    return 'upcoming';
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      {/* Header */}
-      <header className="bg-background/80 backdrop-blur-sm border-b shadow-soft sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-primary rounded-lg shadow-medium">
-                <Database className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  Alamar Argo
-                </h1>
-                <p className="text-sm text-muted-foreground">Analytical Pipeline Builder</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium">Step {currentStep} of {steps.length}</p>
-                <p className="text-xs text-muted-foreground">{steps[currentStep - 1]?.title}</p>
-              </div>
-              <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-primary transition-all duration-500"
-                  style={{ width: `${(currentStep / steps.length) * 100}%` }}
-                />
-              </div>
-            </div>
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Alamar Argo</h1>
+            <p className="text-muted-foreground">
+              Welcome, {pipelineState.userInfo.name} - Configure your analytical pipeline
+            </p>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="space-y-6">
-          {/* Pipeline Overview Button */}
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(1)}
-              className="transition-smooth"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Pipeline Overview
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Dashboard
+            </Button>
+            <Button variant="outline" onClick={() => savePipelineData('draft')}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Progress
+            </Button>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
             </Button>
           </div>
-
-          {/* Steps */}
-          {steps.map((step, index) => {
-            const stepNumber = index + 1;
-            const status = getStepStatus(stepNumber);
-            
-            return (
-              <PipelineStep
-                key={stepNumber}
-                stepNumber={stepNumber}
-                title={step.title}
-                description={step.description}
-                status={status}
-                isLast={stepNumber === steps.length}
-                onNext={handleNext}
-                onPrevious={handlePrevious}
-              >
-                {step.component}
-              </PipelineStep>
-            );
-          })}
-
-          {/* Summary */}
-          {currentStep > steps.length && (
-            <div className="text-center py-8">
-              <h2 className="text-2xl font-bold text-primary mb-4">
-                Pipeline Configuration Complete!
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Your analytical pipeline has been configured and is ready to process data.
-              </p>
-              <Button
-                onClick={() => setCurrentStep(1)}
-                className="bg-gradient-primary hover:opacity-90"
-              >
-                Review Configuration
-              </Button>
-            </div>
-          )}
         </div>
-      </main>
+
+        {/* Progress bar */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Pipeline Configuration Progress</h2>
+            <span className="text-sm text-muted-foreground">
+              Step {currentStep + 1} of {steps.length}
+            </span>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-4">
+            {steps.map((step, index) => (
+              <div key={index} className="flex items-center">
+                <div className="flex items-center">
+                  {getStepStatus(index) === 'completed' ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  ) : getStepStatus(index) === 'current' ? (
+                    <Circle className="h-5 w-5 text-blue-500 fill-current" />
+                  ) : (
+                    <Circle className="h-5 w-5 text-gray-300" />
+                  )}
+                  <Badge 
+                    variant={getStepStatus(index) === 'current' ? 'default' : 'secondary'}
+                    className="ml-2"
+                  >
+                    {index + 1}
+                  </Badge>
+                </div>
+                {index < steps.length - 1 && (
+                  <div className="w-4 h-0.5 bg-gray-200 mx-2" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {currentStep === steps.length ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center text-2xl">
+                🎉 Pipeline Configuration Complete!
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-lg text-muted-foreground">
+                Your analytical pipeline has been successfully configured with all {steps.length} steps.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Button onClick={() => savePipelineData('completed')} className="bg-green-600 hover:bg-green-700">
+                  <Save className="mr-2 h-4 w-4" />
+                  Mark as Complete
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  View Dashboard
+                </Button>
+                <Button variant="outline" onClick={handleRestart}>
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Configure New Pipeline
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                  {currentStep + 1}
+                </span>
+                {steps[currentStep].title}
+              </CardTitle>
+              <p className="text-muted-foreground ml-11">
+                {steps[currentStep].description}
+              </p>
+            </CardHeader>
+            <CardContent>
+              {steps[currentStep].component}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Navigation */}
+        <div className="flex justify-between mt-6">
+          <Button 
+            variant="outline" 
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Previous
+          </Button>
+          
+          <Button 
+            onClick={handleNext}
+            disabled={currentStep >= steps.length}
+          >
+            Next
+            <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
