@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 
 const qcSteps = [
   { id: 'missing-data', label: 'Missing Data Detection', description: 'Identify and flag missing values' },
-  { id: 'outlier-detection', label: 'Outlier Detection', description: 'Statistical outlier identification' },
   { id: 'duplicate-removal', label: 'Duplicate Removal', description: 'Remove duplicate records or samples' },
   { id: 'range-validation', label: 'Range Validation', description: 'Validate data within expected ranges' },
   { id: 'consistency-checks', label: 'Consistency Checks', description: 'Cross-field validation and logic checks' },
