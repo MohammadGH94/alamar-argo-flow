@@ -38,46 +38,49 @@ interface PipelineState {
     additionalRequirements: string;
   };
   powerAnalysis: {
-    selectedMethods: string[];
-    effectSize: string;
+    selectedMethod: string;
+    selectedEffectSizes: string[];
     powerLevel: string;
     alphaLevel: string;
+    customEffectSize: string;
     customMethods: string;
   };
   qc: {
-    selectedMethods: string[];
+    selectedQCSteps: string[];
     qualityThreshold: string;
-    customMethods: string;
+    customQCSteps: string;
   };
   lodHandling: {
-    selectedMethods: string[];
-    threshold: string;
-    customMethods: string;
+    selectedMethod: string;
+    lodThreshold: string;
+    customMethod: string;
   };
   outlierDetection: {
-    selectedMethods: string[];
-    handlingStrategies: string[];
+    selectedDetectionMethods: string[];
+    selectedHandlingStrategies: string[];
     zScoreThreshold: string;
     iqrMultiplier: string;
-    customMethods: string;
+    customDetectionMethods: string;
   };
   normalization: {
-    selectedMethods: string[];
-    referenceGroup: string;
-    customMethods: string;
+    selectedMethod: string;
+    selectedBridgingOptions: string[];
+    customMethod: string;
   };
   batchEffect: {
-    selectedMethods: string[];
-    batchVariables: string;
-    customMethods: string;
+    selectedDetectionMethods: string[];
+    selectedCorrectionMethod: string;
+    selectedBatchVariables: string[];
+    preservedVariables: string;
+    customCorrectionMethod: string;
   };
   exploratoryAnalysis: {
     selectedMethods: string[];
     customMethods: string;
   };
   groupComparison: {
-    numberOfGroups: number;
-    timePoints: number;
+    numberOfGroups: string;
+    timePoints: string;
     dataType: string;
     selectedModels: string[];
     useMachineLearning: boolean;
@@ -87,33 +90,38 @@ interface PipelineState {
     customTransformations: string;
   };
   statisticalModeling: {
-    selectedMethods: string[];
-    confidenceLevel: string;
-    customMethods: string;
+    selectedDiagnostics: string[];
+    customDiagnostics: string;
   };
   comparators: {
-    selectedMethods: string[];
-    referenceGroup: string;
-    customMethods: string;
+    selectedContrasts: string[];
+    selectedExtractionValues: string[];
+    customContrasts: string;
+    customExtractionValues: string;
   };
   multipleTestingCorrection: {
-    selectedMethods: string[];
-    alphaLevel: string;
+    selectedMethod: string;
+    selectedAdditionalMethods: string[];
     customMethods: string;
   };
   sensitivityAnalysis: {
     selectedMethods: string[];
+    selectedParameterTypes: string[];
+    selectedRobustnessChecks: string[];
     parameterRanges: string;
+    stabilityThreshold: string;
     customMethods: string;
   };
   visualization: {
-    selectedTypes: string[];
-    customTypes: string;
+    selectedGraphs: string[];
+    selectedTables: string[];
+    customVisualizations: string;
+    customTables: string;
   };
   export: {
     selectedFormats: string[];
     selectedReportSections: string[];
-    customOptions: string;
+    customExportOptions: string;
     customReportSections: string;
   };
 }
@@ -130,46 +138,49 @@ const Index = () => {
       additionalRequirements: ''
     },
     powerAnalysis: {
-      selectedMethods: [],
-      effectSize: '',
+      selectedMethod: '',
+      selectedEffectSizes: [],
       powerLevel: '0.8',
       alphaLevel: '0.05',
+      customEffectSize: '',
       customMethods: ''
     },
     qc: {
-      selectedMethods: [],
+      selectedQCSteps: [],
       qualityThreshold: '',
-      customMethods: ''
+      customQCSteps: ''
     },
     lodHandling: {
-      selectedMethods: [],
-      threshold: '',
-      customMethods: ''
+      selectedMethod: '',
+      lodThreshold: '',
+      customMethod: ''
     },
     outlierDetection: {
-      selectedMethods: [],
-      handlingStrategies: [],
+      selectedDetectionMethods: [],
+      selectedHandlingStrategies: [],
       zScoreThreshold: '3',
       iqrMultiplier: '1.5',
-      customMethods: ''
+      customDetectionMethods: ''
     },
     normalization: {
-      selectedMethods: [],
-      referenceGroup: '',
-      customMethods: ''
+      selectedMethod: '',
+      selectedBridgingOptions: [],
+      customMethod: ''
     },
     batchEffect: {
-      selectedMethods: [],
-      batchVariables: '',
-      customMethods: ''
+      selectedDetectionMethods: [],
+      selectedCorrectionMethod: '',
+      selectedBatchVariables: [],
+      preservedVariables: '',
+      customCorrectionMethod: ''
     },
     exploratoryAnalysis: {
       selectedMethods: [],
       customMethods: ''
     },
     groupComparison: {
-      numberOfGroups: 2,
-      timePoints: 1,
+      numberOfGroups: '2',
+      timePoints: '1',
       dataType: 'cross-sectional',
       selectedModels: [],
       useMachineLearning: false
@@ -179,33 +190,38 @@ const Index = () => {
       customTransformations: ''
     },
     statisticalModeling: {
-      selectedMethods: [],
-      confidenceLevel: '95',
-      customMethods: ''
+      selectedDiagnostics: [],
+      customDiagnostics: ''
     },
     comparators: {
-      selectedMethods: [],
-      referenceGroup: '',
-      customMethods: ''
+      selectedContrasts: [],
+      selectedExtractionValues: [],
+      customContrasts: '',
+      customExtractionValues: ''
     },
     multipleTestingCorrection: {
-      selectedMethods: [],
-      alphaLevel: '0.05',
+      selectedMethod: '',
+      selectedAdditionalMethods: [],
       customMethods: ''
     },
     sensitivityAnalysis: {
       selectedMethods: [],
+      selectedParameterTypes: [],
+      selectedRobustnessChecks: [],
       parameterRanges: '',
+      stabilityThreshold: '10',
       customMethods: ''
     },
     visualization: {
-      selectedTypes: [],
-      customTypes: ''
+      selectedGraphs: [],
+      selectedTables: [],
+      customVisualizations: '',
+      customTables: ''
     },
     export: {
       selectedFormats: [],
       selectedReportSections: [],
-      customOptions: '',
+      customExportOptions: '',
       customReportSections: ''
     }
   });
@@ -326,18 +342,18 @@ const Index = () => {
       description: "Determine statistical power and calculate required sample sizes",
       component: (
         <PowerAnalysisForm
-          selectedMethods={pipelineState.powerAnalysis.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedMethod={pipelineState.powerAnalysis.selectedMethod}
+          onMethodChange={(method) =>
             setPipelineState(prev => ({
               ...prev,
-              powerAnalysis: { ...prev.powerAnalysis, selectedMethods: methods }
+              powerAnalysis: { ...prev.powerAnalysis, selectedMethod: method }
             }))
           }
-          effectSize={pipelineState.powerAnalysis.effectSize}
-          onEffectSizeChange={(size) =>
+          selectedEffectSizes={pipelineState.powerAnalysis.selectedEffectSizes}
+          onEffectSizesChange={(sizes) =>
             setPipelineState(prev => ({
               ...prev,
-              powerAnalysis: { ...prev.powerAnalysis, effectSize: size }
+              powerAnalysis: { ...prev.powerAnalysis, selectedEffectSizes: sizes }
             }))
           }
           powerLevel={pipelineState.powerAnalysis.powerLevel}
@@ -352,6 +368,13 @@ const Index = () => {
             setPipelineState(prev => ({
               ...prev,
               powerAnalysis: { ...prev.powerAnalysis, alphaLevel: level }
+            }))
+          }
+          customEffectSize={pipelineState.powerAnalysis.customEffectSize}
+          onCustomEffectSizeChange={(size) =>
+            setPipelineState(prev => ({
+              ...prev,
+              powerAnalysis: { ...prev.powerAnalysis, customEffectSize: size }
             }))
           }
           customMethods={pipelineState.powerAnalysis.customMethods}
@@ -369,11 +392,11 @@ const Index = () => {
       description: "Define quality control measures and thresholds",
       component: (
         <QCForm
-          selectedMethods={pipelineState.qc.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedQCSteps={pipelineState.qc.selectedQCSteps}
+          onQCStepsChange={(steps) =>
             setPipelineState(prev => ({
               ...prev,
-              qc: { ...prev.qc, selectedMethods: methods }
+              qc: { ...prev.qc, selectedQCSteps: steps }
             }))
           }
           qualityThreshold={pipelineState.qc.qualityThreshold}
@@ -383,11 +406,11 @@ const Index = () => {
               qc: { ...prev.qc, qualityThreshold: threshold }
             }))
           }
-          customMethods={pipelineState.qc.customMethods}
-          onCustomMethodsChange={(methods) =>
+          customQCSteps={pipelineState.qc.customQCSteps}
+          onCustomQCStepsChange={(steps) =>
             setPipelineState(prev => ({
               ...prev,
-              qc: { ...prev.qc, customMethods: methods }
+              qc: { ...prev.qc, customQCSteps: steps }
             }))
           }
         />
@@ -398,25 +421,25 @@ const Index = () => {
       description: "Configure limit of detection handling strategies",
       component: (
         <LODHandlingForm
-          selectedMethods={pipelineState.lodHandling.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedMethod={pipelineState.lodHandling.selectedMethod}
+          onMethodChange={(method) =>
             setPipelineState(prev => ({
               ...prev,
-              lodHandling: { ...prev.lodHandling, selectedMethods: methods }
+              lodHandling: { ...prev.lodHandling, selectedMethod: method }
             }))
           }
-          threshold={pipelineState.lodHandling.threshold}
-          onThresholdChange={(threshold) =>
+          lodThreshold={pipelineState.lodHandling.lodThreshold}
+          onLODThresholdChange={(threshold) =>
             setPipelineState(prev => ({
               ...prev,
-              lodHandling: { ...prev.lodHandling, threshold }
+              lodHandling: { ...prev.lodHandling, lodThreshold: threshold }
             }))
           }
-          customMethods={pipelineState.lodHandling.customMethods}
-          onCustomMethodsChange={(methods) =>
+          customMethod={pipelineState.lodHandling.customMethod}
+          onCustomMethodChange={(method) =>
             setPipelineState(prev => ({
               ...prev,
-              lodHandling: { ...prev.lodHandling, customMethods: methods }
+              lodHandling: { ...prev.lodHandling, customMethod: method }
             }))
           }
         />
@@ -427,18 +450,18 @@ const Index = () => {
       description: "Identify and handle outliers in your data",
       component: (
         <OutlierDetectionForm
-          selectedMethods={pipelineState.outlierDetection.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedDetectionMethods={pipelineState.outlierDetection.selectedDetectionMethods}
+          onDetectionMethodsChange={(methods) =>
             setPipelineState(prev => ({
               ...prev,
-              outlierDetection: { ...prev.outlierDetection, selectedMethods: methods }
+              outlierDetection: { ...prev.outlierDetection, selectedDetectionMethods: methods }
             }))
           }
-          handlingStrategies={pipelineState.outlierDetection.handlingStrategies}
+          selectedHandlingStrategies={pipelineState.outlierDetection.selectedHandlingStrategies}
           onHandlingStrategiesChange={(strategies) =>
             setPipelineState(prev => ({
               ...prev,
-              outlierDetection: { ...prev.outlierDetection, handlingStrategies: strategies }
+              outlierDetection: { ...prev.outlierDetection, selectedHandlingStrategies: strategies }
             }))
           }
           zScoreThreshold={pipelineState.outlierDetection.zScoreThreshold}
@@ -449,17 +472,17 @@ const Index = () => {
             }))
           }
           iqrMultiplier={pipelineState.outlierDetection.iqrMultiplier}
-          onIqrMultiplierChange={(multiplier) =>
+          onIQRMultiplierChange={(multiplier) =>
             setPipelineState(prev => ({
               ...prev,
               outlierDetection: { ...prev.outlierDetection, iqrMultiplier: multiplier }
             }))
           }
-          customMethods={pipelineState.outlierDetection.customMethods}
-          onCustomMethodsChange={(methods) =>
+          customDetectionMethods={pipelineState.outlierDetection.customDetectionMethods}
+          onCustomDetectionMethodsChange={(methods) =>
             setPipelineState(prev => ({
               ...prev,
-              outlierDetection: { ...prev.outlierDetection, customMethods: methods }
+              outlierDetection: { ...prev.outlierDetection, customDetectionMethods: methods }
             }))
           }
         />
@@ -470,25 +493,25 @@ const Index = () => {
       description: "Configure data bridging and normalization methods",
       component: (
         <NormalizationForm
-          selectedMethods={pipelineState.normalization.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedMethod={pipelineState.normalization.selectedMethod}
+          onMethodChange={(method) =>
             setPipelineState(prev => ({
               ...prev,
-              normalization: { ...prev.normalization, selectedMethods: methods }
+              normalization: { ...prev.normalization, selectedMethod: method }
             }))
           }
-          referenceGroup={pipelineState.normalization.referenceGroup}
-          onReferenceGroupChange={(group) =>
+          selectedBridgingOptions={pipelineState.normalization.selectedBridgingOptions}
+          onBridgingOptionsChange={(options) =>
             setPipelineState(prev => ({
               ...prev,
-              normalization: { ...prev.normalization, referenceGroup: group }
+              normalization: { ...prev.normalization, selectedBridgingOptions: options }
             }))
           }
-          customMethods={pipelineState.normalization.customMethods}
-          onCustomMethodsChange={(methods) =>
+          customMethod={pipelineState.normalization.customMethod}
+          onCustomMethodChange={(method) =>
             setPipelineState(prev => ({
               ...prev,
-              normalization: { ...prev.normalization, customMethods: methods }
+              normalization: { ...prev.normalization, customMethod: method }
             }))
           }
         />
@@ -499,25 +522,39 @@ const Index = () => {
       description: "Detect and correct for batch effects in your data",
       component: (
         <BatchEffectForm
-          selectedMethods={pipelineState.batchEffect.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedDetectionMethods={pipelineState.batchEffect.selectedDetectionMethods}
+          onDetectionMethodsChange={(methods) =>
             setPipelineState(prev => ({
               ...prev,
-              batchEffect: { ...prev.batchEffect, selectedMethods: methods }
+              batchEffect: { ...prev.batchEffect, selectedDetectionMethods: methods }
             }))
           }
-          batchVariables={pipelineState.batchEffect.batchVariables}
+          selectedCorrectionMethod={pipelineState.batchEffect.selectedCorrectionMethod}
+          onCorrectionMethodChange={(method) =>
+            setPipelineState(prev => ({
+              ...prev,
+              batchEffect: { ...prev.batchEffect, selectedCorrectionMethod: method }
+            }))
+          }
+          selectedBatchVariables={pipelineState.batchEffect.selectedBatchVariables}
           onBatchVariablesChange={(variables) =>
             setPipelineState(prev => ({
               ...prev,
-              batchEffect: { ...prev.batchEffect, batchVariables: variables }
+              batchEffect: { ...prev.batchEffect, selectedBatchVariables: variables }
             }))
           }
-          customMethods={pipelineState.batchEffect.customMethods}
-          onCustomMethodsChange={(methods) =>
+          preservedVariables={pipelineState.batchEffect.preservedVariables}
+          onPreservedVariablesChange={(variables) =>
             setPipelineState(prev => ({
               ...prev,
-              batchEffect: { ...prev.batchEffect, customMethods: methods }
+              batchEffect: { ...prev.batchEffect, preservedVariables: variables }
+            }))
+          }
+          customCorrectionMethod={pipelineState.batchEffect.customCorrectionMethod}
+          onCustomCorrectionMethodChange={(method) =>
+            setPipelineState(prev => ({
+              ...prev,
+              batchEffect: { ...prev.batchEffect, customCorrectionMethod: method }
             }))
           }
         />
@@ -572,14 +609,14 @@ const Index = () => {
             }))
           }
           selectedModels={pipelineState.groupComparison.selectedModels}
-          onSelectedModelsChange={(models) =>
+          onModelsChange={(models) =>
             setPipelineState(prev => ({
               ...prev,
               groupComparison: { ...prev.groupComparison, selectedModels: models }
             }))
           }
           useMachineLearning={pipelineState.groupComparison.useMachineLearning}
-          onUseMachineLearningChange={(use) =>
+          onMachineLearningChange={(use) =>
             setPipelineState(prev => ({
               ...prev,
               groupComparison: { ...prev.groupComparison, useMachineLearning: use }
@@ -615,25 +652,18 @@ const Index = () => {
       description: "Configure statistical modeling approaches",
       component: (
         <StatisticalModelingForm
-          selectedMethods={pipelineState.statisticalModeling.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedDiagnostics={pipelineState.statisticalModeling.selectedDiagnostics}
+          onDiagnosticsChange={(diagnostics) =>
             setPipelineState(prev => ({
               ...prev,
-              statisticalModeling: { ...prev.statisticalModeling, selectedMethods: methods }
+              statisticalModeling: { ...prev.statisticalModeling, selectedDiagnostics: diagnostics }
             }))
           }
-          confidenceLevel={pipelineState.statisticalModeling.confidenceLevel}
-          onConfidenceLevelChange={(level) =>
+          customDiagnostics={pipelineState.statisticalModeling.customDiagnostics}
+          onCustomDiagnosticsChange={(diagnostics) =>
             setPipelineState(prev => ({
               ...prev,
-              statisticalModeling: { ...prev.statisticalModeling, confidenceLevel: level }
-            }))
-          }
-          customMethods={pipelineState.statisticalModeling.customMethods}
-          onCustomMethodsChange={(methods) =>
-            setPipelineState(prev => ({
-              ...prev,
-              statisticalModeling: { ...prev.statisticalModeling, customMethods: methods }
+              statisticalModeling: { ...prev.statisticalModeling, customDiagnostics: diagnostics }
             }))
           }
         />
@@ -644,25 +674,32 @@ const Index = () => {
       description: "Define comparison strategies and reference groups",
       component: (
         <ComparatorsForm
-          selectedMethods={pipelineState.comparators.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedContrasts={pipelineState.comparators.selectedContrasts}
+          onContrastsChange={(contrasts) =>
             setPipelineState(prev => ({
               ...prev,
-              comparators: { ...prev.comparators, selectedMethods: methods }
+              comparators: { ...prev.comparators, selectedContrasts: contrasts }
             }))
           }
-          referenceGroup={pipelineState.comparators.referenceGroup}
-          onReferenceGroupChange={(group) =>
+          selectedExtractionValues={pipelineState.comparators.selectedExtractionValues}
+          onExtractionValuesChange={(values) =>
             setPipelineState(prev => ({
               ...prev,
-              comparators: { ...prev.comparators, referenceGroup: group }
+              comparators: { ...prev.comparators, selectedExtractionValues: values }
             }))
           }
-          customMethods={pipelineState.comparators.customMethods}
-          onCustomMethodsChange={(methods) =>
+          customContrasts={pipelineState.comparators.customContrasts}
+          onCustomContrastsChange={(contrasts) =>
             setPipelineState(prev => ({
               ...prev,
-              comparators: { ...prev.comparators, customMethods: methods }
+              comparators: { ...prev.comparators, customContrasts: contrasts }
+            }))
+          }
+          customExtractionValues={pipelineState.comparators.customExtractionValues}
+          onCustomExtractionValuesChange={(values) =>
+            setPipelineState(prev => ({
+              ...prev,
+              comparators: { ...prev.comparators, customExtractionValues: values }
             }))
           }
         />
@@ -673,18 +710,18 @@ const Index = () => {
       description: "Configure multiple testing correction methods",
       component: (
         <MultipleTestingCorrectionForm
-          selectedMethods={pipelineState.multipleTestingCorrection.selectedMethods}
-          onMethodsChange={(methods) =>
+          selectedMethod={pipelineState.multipleTestingCorrection.selectedMethod}
+          onMethodChange={(method) =>
             setPipelineState(prev => ({
               ...prev,
-              multipleTestingCorrection: { ...prev.multipleTestingCorrection, selectedMethods: methods }
+              multipleTestingCorrection: { ...prev.multipleTestingCorrection, selectedMethod: method }
             }))
           }
-          alphaLevel={pipelineState.multipleTestingCorrection.alphaLevel}
-          onAlphaLevelChange={(level) =>
+          selectedAdditionalMethods={pipelineState.multipleTestingCorrection.selectedAdditionalMethods}
+          onAdditionalMethodsChange={(methods) =>
             setPipelineState(prev => ({
               ...prev,
-              multipleTestingCorrection: { ...prev.multipleTestingCorrection, alphaLevel: level }
+              multipleTestingCorrection: { ...prev.multipleTestingCorrection, selectedAdditionalMethods: methods }
             }))
           }
           customMethods={pipelineState.multipleTestingCorrection.customMethods}
@@ -709,11 +746,32 @@ const Index = () => {
               sensitivityAnalysis: { ...prev.sensitivityAnalysis, selectedMethods: methods }
             }))
           }
+          selectedParameterTypes={pipelineState.sensitivityAnalysis.selectedParameterTypes}
+          onParameterTypesChange={(types) =>
+            setPipelineState(prev => ({
+              ...prev,
+              sensitivityAnalysis: { ...prev.sensitivityAnalysis, selectedParameterTypes: types }
+            }))
+          }
+          selectedRobustnessChecks={pipelineState.sensitivityAnalysis.selectedRobustnessChecks}
+          onRobustnessChecksChange={(checks) =>
+            setPipelineState(prev => ({
+              ...prev,
+              sensitivityAnalysis: { ...prev.sensitivityAnalysis, selectedRobustnessChecks: checks }
+            }))
+          }
           parameterRanges={pipelineState.sensitivityAnalysis.parameterRanges}
           onParameterRangesChange={(ranges) =>
             setPipelineState(prev => ({
               ...prev,
               sensitivityAnalysis: { ...prev.sensitivityAnalysis, parameterRanges: ranges }
+            }))
+          }
+          stabilityThreshold={pipelineState.sensitivityAnalysis.stabilityThreshold}
+          onStabilityThresholdChange={(threshold) =>
+            setPipelineState(prev => ({
+              ...prev,
+              sensitivityAnalysis: { ...prev.sensitivityAnalysis, stabilityThreshold: threshold }
             }))
           }
           customMethods={pipelineState.sensitivityAnalysis.customMethods}
@@ -731,18 +789,32 @@ const Index = () => {
       description: "Select visualization types and configure output formats",
       component: (
         <VisualizationForm
-          selectedTypes={pipelineState.visualization.selectedTypes}
-          onTypesChange={(types) =>
+          selectedGraphs={pipelineState.visualization.selectedGraphs}
+          onGraphsChange={(graphs) =>
             setPipelineState(prev => ({
               ...prev,
-              visualization: { ...prev.visualization, selectedTypes: types }
+              visualization: { ...prev.visualization, selectedGraphs: graphs }
             }))
           }
-          customTypes={pipelineState.visualization.customTypes}
-          onCustomTypesChange={(types) =>
+          selectedTables={pipelineState.visualization.selectedTables}
+          onTablesChange={(tables) =>
             setPipelineState(prev => ({
               ...prev,
-              visualization: { ...prev.visualization, customTypes: types }
+              visualization: { ...prev.visualization, selectedTables: tables }
+            }))
+          }
+          customVisualizations={pipelineState.visualization.customVisualizations}
+          onCustomVisualizationsChange={(visualizations) =>
+            setPipelineState(prev => ({
+              ...prev,
+              visualization: { ...prev.visualization, customVisualizations: visualizations }
+            }))
+          }
+          customTables={pipelineState.visualization.customTables}
+          onCustomTablesChange={(tables) =>
+            setPipelineState(prev => ({
+              ...prev,
+              visualization: { ...prev.visualization, customTables: tables }
             }))
           }
         />
@@ -767,11 +839,11 @@ const Index = () => {
               export: { ...prev.export, selectedReportSections: sections }
             }))
           }
-          customOptions={pipelineState.export.customOptions}
-          onCustomOptionsChange={(options) =>
+          customExportOptions={pipelineState.export.customExportOptions}
+          onCustomExportOptionsChange={(options) =>
             setPipelineState(prev => ({
               ...prev,
-              export: { ...prev.export, customOptions: options }
+              export: { ...prev.export, customExportOptions: options }
             }))
           }
           customReportSections={pipelineState.export.customReportSections}
@@ -807,21 +879,21 @@ const Index = () => {
     setPipelineState({
       userInfo: { name: '', email: '' },
       dataEntry: { selectedFileTypes: [], additionalRequirements: '' },
-      powerAnalysis: { selectedMethods: [], effectSize: '', powerLevel: '0.8', alphaLevel: '0.05', customMethods: '' },
-      qc: { selectedMethods: [], qualityThreshold: '', customMethods: '' },
-      lodHandling: { selectedMethods: [], threshold: '', customMethods: '' },
-      outlierDetection: { selectedMethods: [], handlingStrategies: [], zScoreThreshold: '3', iqrMultiplier: '1.5', customMethods: '' },
-      normalization: { selectedMethods: [], referenceGroup: '', customMethods: '' },
-      batchEffect: { selectedMethods: [], batchVariables: '', customMethods: '' },
+      powerAnalysis: { selectedMethod: '', selectedEffectSizes: [], powerLevel: '0.8', alphaLevel: '0.05', customEffectSize: '', customMethods: '' },
+      qc: { selectedQCSteps: [], qualityThreshold: '', customQCSteps: '' },
+      lodHandling: { selectedMethod: '', lodThreshold: '', customMethod: '' },
+      outlierDetection: { selectedDetectionMethods: [], selectedHandlingStrategies: [], zScoreThreshold: '3', iqrMultiplier: '1.5', customDetectionMethods: '' },
+      normalization: { selectedMethod: '', selectedBridgingOptions: [], customMethod: '' },
+      batchEffect: { selectedDetectionMethods: [], selectedCorrectionMethod: '', selectedBatchVariables: [], preservedVariables: '', customCorrectionMethod: '' },
       exploratoryAnalysis: { selectedMethods: [], customMethods: '' },
-      groupComparison: { numberOfGroups: 2, timePoints: 1, dataType: 'cross-sectional', selectedModels: [], useMachineLearning: false },
+      groupComparison: { numberOfGroups: '2', timePoints: '1', dataType: 'cross-sectional', selectedModels: [], useMachineLearning: false },
       dataTransformation: { selectedTransformations: [], customTransformations: '' },
-      statisticalModeling: { selectedMethods: [], confidenceLevel: '95', customMethods: '' },
-      comparators: { selectedMethods: [], referenceGroup: '', customMethods: '' },
-      multipleTestingCorrection: { selectedMethods: [], alphaLevel: '0.05', customMethods: '' },
-      sensitivityAnalysis: { selectedMethods: [], parameterRanges: '', customMethods: '' },
-      visualization: { selectedTypes: [], customTypes: '' },
-      export: { selectedFormats: [], selectedReportSections: [], customOptions: '', customReportSections: '' }
+      statisticalModeling: { selectedDiagnostics: [], customDiagnostics: '' },
+      comparators: { selectedContrasts: [], selectedExtractionValues: [], customContrasts: '', customExtractionValues: '' },
+      multipleTestingCorrection: { selectedMethod: '', selectedAdditionalMethods: [], customMethods: '' },
+      sensitivityAnalysis: { selectedMethods: [], selectedParameterTypes: [], selectedRobustnessChecks: [], parameterRanges: '', stabilityThreshold: '10', customMethods: '' },
+      visualization: { selectedGraphs: [], selectedTables: [], customVisualizations: '', customTables: '' },
+      export: { selectedFormats: [], selectedReportSections: [], customExportOptions: '', customReportSections: '' }
     });
   };
 
