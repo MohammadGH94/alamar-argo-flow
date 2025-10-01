@@ -872,9 +872,9 @@ const Index = () => {
   ];
 
   const handleNext = async () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < steps.length) {
       // Save progress first, only navigate if successful
-      const saved = await savePipelineData('draft');
+      const saved = await savePipelineData(currentStep === steps.length - 1 ? 'completed' : 'draft');
       if (saved) {
         setCurrentStep(currentStep + 1);
       }
