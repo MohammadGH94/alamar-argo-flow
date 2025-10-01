@@ -236,10 +236,15 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  const savePipelineData = async (status: 'draft' | 'completed' = 'draft') => {
-    if (!user || !pipelineState.userInfo.name) return;
+  const savePipelineData = async (status: 'draft' | 'completed' = 'draft'): Promise<boolean> => {
+    if (!user || !pipelineState.userInfo.name) {
+      console.error('Cannot save: No user or user name');
+      return false;
+    }
 
     try {
+      console.log('Saving pipeline data...', { status, userId: user.id });
+      
       const { data, error } = await supabase.functions.invoke('save-pipeline', {
         body: {
           pipelineData: pipelineState,
@@ -248,7 +253,12 @@ const Index = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function returned error:', error);
+        throw error;
+      }
+
+      console.log('Pipeline saved successfully:', data);
 
       toast({
         title: status === 'completed' ? "Pipeline completed!" : "Progress saved",
@@ -256,6 +266,8 @@ const Index = () => {
           ? "Your pipeline configuration has been completed and saved."
           : "Your progress has been saved automatically.",
       });
+      
+      return true;
     } catch (error) {
       console.error('Error saving pipeline:', error);
       toast({
@@ -263,6 +275,7 @@ const Index = () => {
         description: "There was an issue saving your progress. Please try again.",
         variant: "destructive"
       });
+      return false;
     }
   };
 
@@ -860,9 +873,11 @@ const Index = () => {
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-      // Auto-save progress
-      await savePipelineData('draft');
+      // Save progress first, only navigate if successful
+      const saved = await savePipelineData('draft');
+      if (saved) {
+        setCurrentStep(currentStep + 1);
+      }
     }
   };
 
