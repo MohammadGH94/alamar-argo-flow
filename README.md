@@ -62,7 +62,9 @@ This project is built with:
 
 ## How can I verify the pipeline navigation still works?
 
-The pipeline configuration flow now ships with automated tests that cover moving forward, backward, jumping across steps from the progress tracker, and restarting a completed build to start a brand new pipeline without overwriting the previous one. After installing dependencies, run the Vitest suite to confirm navigation still persists progress as expected:
+
+The pipeline configuration flow now ships with automated tests that cover moving forward, backward, and jumping across steps from the progress tracker. After installing dependencies, run the Vitest suite to confirm navigation still persists progress as expected:
+
 
 ```sh
 npm install

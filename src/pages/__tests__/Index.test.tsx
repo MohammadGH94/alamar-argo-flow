@@ -12,6 +12,7 @@ const supabaseMocks = vi.hoisted(() => {
   const mockInvoke = vi.fn().mockResolvedValue({ data: { data: { id: 'new-pipeline-id' } }, error: null });
   const mockSignOut = vi.fn().mockResolvedValue(undefined);
   return { mockSelect, mockUpdate, mockUpdateEq, mockInvoke, mockSignOut };
+
 });
 
 const authMocks = vi.hoisted(() => ({
@@ -144,6 +145,7 @@ describe('Index pipeline navigation', () => {
     });
     expect(powerHeadings[0]).toBeInTheDocument();
 
+
     await userEvent.click(nextButton);
 
     await waitFor(() => expect(mockUpdate).toHaveBeenCalledTimes(1));
@@ -182,6 +184,7 @@ describe('Index pipeline navigation', () => {
     expect(visualizationHeadings[0]).toBeInTheDocument();
   });
 
+
   it('creates a fresh pipeline after restarting configuration', async () => {
     render(
       <MemoryRouter>
@@ -216,4 +219,5 @@ describe('Index pipeline navigation', () => {
     await waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(2));
     expect(mockUpdate).toHaveBeenCalledTimes(1);
   });
+
 });
