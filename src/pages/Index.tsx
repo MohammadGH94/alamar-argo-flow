@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -126,111 +126,114 @@ interface PipelineState {
   };
 }
 
+const createInitialPipelineState = (): PipelineState => ({
+  userInfo: {
+    name: '',
+    email: ''
+  },
+  dataEntry: {
+    selectedFileTypes: [],
+    additionalRequirements: ''
+  },
+  powerAnalysis: {
+    selectedMethod: '',
+    selectedEffectSizes: [],
+    powerLevel: '0.8',
+    alphaLevel: '0.05',
+    customEffectSize: '',
+    customMethods: ''
+  },
+  qc: {
+    selectedQCSteps: [],
+    qualityThreshold: '',
+    customQCSteps: ''
+  },
+  lodHandling: {
+    selectedMethod: '',
+    lodThreshold: '',
+    customMethod: ''
+  },
+  outlierDetection: {
+    selectedDetectionMethods: [],
+    selectedHandlingStrategies: [],
+    zScoreThreshold: '3',
+    iqrMultiplier: '1.5',
+    customDetectionMethods: ''
+  },
+  normalization: {
+    selectedMethod: '',
+    selectedBridgingOptions: [],
+    customMethod: ''
+  },
+  batchEffect: {
+    selectedDetectionMethods: [],
+    selectedCorrectionMethod: '',
+    selectedBatchVariables: [],
+    preservedVariables: '',
+    customCorrectionMethod: ''
+  },
+  exploratoryAnalysis: {
+    selectedMethods: [],
+    customMethods: ''
+  },
+  groupComparison: {
+    numberOfGroups: '2',
+    timePoints: '1',
+    dataType: 'cross-sectional',
+    selectedModels: [],
+    useMachineLearning: false
+  },
+  dataTransformation: {
+    selectedTransformations: [],
+    customTransformations: ''
+  },
+  statisticalModeling: {
+    selectedDiagnostics: [],
+    customDiagnostics: ''
+  },
+  comparators: {
+    selectedContrasts: [],
+    selectedExtractionValues: [],
+    customContrasts: '',
+    customExtractionValues: ''
+  },
+  multipleTestingCorrection: {
+    selectedMethod: '',
+    selectedAdditionalMethods: [],
+    customMethods: ''
+  },
+  sensitivityAnalysis: {
+    selectedMethods: [],
+    selectedParameterTypes: [],
+    selectedRobustnessChecks: [],
+    parameterRanges: '',
+    stabilityThreshold: '10',
+    customMethods: ''
+  },
+  visualization: {
+    selectedGraphs: [],
+    selectedTables: [],
+    customVisualizations: '',
+    customTables: ''
+  },
+  export: {
+    selectedFormats: [],
+    selectedReportSections: [],
+    customExportOptions: '',
+    customReportSections: ''
+  }
+});
+
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(-1); // Start with user info form (-1)
   const [editingPipelineId, setEditingPipelineId] = useState<string | null>(null);
-  const [pipelineState, setPipelineState] = useState<PipelineState>({
-    userInfo: {
-      name: '',
-      email: ''
-    },
-    dataEntry: {
-      selectedFileTypes: [],
-      additionalRequirements: ''
-    },
-    powerAnalysis: {
-      selectedMethod: '',
-      selectedEffectSizes: [],
-      powerLevel: '0.8',
-      alphaLevel: '0.05',
-      customEffectSize: '',
-      customMethods: ''
-    },
-    qc: {
-      selectedQCSteps: [],
-      qualityThreshold: '',
-      customQCSteps: ''
-    },
-    lodHandling: {
-      selectedMethod: '',
-      lodThreshold: '',
-      customMethod: ''
-    },
-    outlierDetection: {
-      selectedDetectionMethods: [],
-      selectedHandlingStrategies: [],
-      zScoreThreshold: '3',
-      iqrMultiplier: '1.5',
-      customDetectionMethods: ''
-    },
-    normalization: {
-      selectedMethod: '',
-      selectedBridgingOptions: [],
-      customMethod: ''
-    },
-    batchEffect: {
-      selectedDetectionMethods: [],
-      selectedCorrectionMethod: '',
-      selectedBatchVariables: [],
-      preservedVariables: '',
-      customCorrectionMethod: ''
-    },
-    exploratoryAnalysis: {
-      selectedMethods: [],
-      customMethods: ''
-    },
-    groupComparison: {
-      numberOfGroups: '2',
-      timePoints: '1',
-      dataType: 'cross-sectional',
-      selectedModels: [],
-      useMachineLearning: false
-    },
-    dataTransformation: {
-      selectedTransformations: [],
-      customTransformations: ''
-    },
-    statisticalModeling: {
-      selectedDiagnostics: [],
-      customDiagnostics: ''
-    },
-    comparators: {
-      selectedContrasts: [],
-      selectedExtractionValues: [],
-      customContrasts: '',
-      customExtractionValues: ''
-    },
-    multipleTestingCorrection: {
-      selectedMethod: '',
-      selectedAdditionalMethods: [],
-      customMethods: ''
-    },
-    sensitivityAnalysis: {
-      selectedMethods: [],
-      selectedParameterTypes: [],
-      selectedRobustnessChecks: [],
-      parameterRanges: '',
-      stabilityThreshold: '10',
-      customMethods: ''
-    },
-    visualization: {
-      selectedGraphs: [],
-      selectedTables: [],
-      customVisualizations: '',
-      customTables: ''
-    },
-    export: {
-      selectedFormats: [],
-      selectedReportSections: [],
-      customExportOptions: '',
-      customReportSections: ''
-    }
-  });
+  const [pipelineState, setPipelineState] = useState<PipelineState>(() => createInitialPipelineState());
 
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const skipNextEditLoad = useRef(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -242,7 +245,12 @@ const Index = () => {
   useEffect(() => {
     const loadPipelineForEditing = async () => {
       const editId = searchParams.get('edit');
-      if (!editId || !user) return;
+      if (skipNextEditLoad.current) {
+        skipNextEditLoad.current = false;
+        return;
+      }
+
+      if (!editId || !user || editId === editingPipelineId) return;
 
       try {
         const { data, error } = await supabase
@@ -276,7 +284,7 @@ const Index = () => {
     if (!loading && user) {
       loadPipelineForEditing();
     }
-  }, [user, loading, searchParams, toast]);
+  }, [user, loading, searchParams, toast, editingPipelineId]);
 
   const savePipelineData = async (status: 'draft' | 'completed' = 'draft'): Promise<boolean> => {
     if (!user || !pipelineState.userInfo.name) {
@@ -286,36 +294,13 @@ const Index = () => {
 
     try {
       console.log('Saving pipeline data...', { status, userId: user.id, editingId: editingPipelineId });
-      
-      // If editing existing pipeline, update it directly
-      if (editingPipelineId) {
-        const { error } = await supabase
-          .from('pipeline_responses')
-          .update({
-            pipeline_data: pipelineState as any,
-            status,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingPipelineId);
 
-        if (error) throw error;
-        
-        toast({
-          title: status === 'completed' ? "Pipeline completed!" : "Progress saved",
-          description: status === 'completed' 
-            ? "Your pipeline configuration has been completed and saved."
-            : "Your changes have been saved.",
-        });
-        
-        return true;
-      }
-      
-      // Otherwise create new pipeline via edge function
       const { data, error } = await supabase.functions.invoke('save-pipeline', {
         body: {
           pipelineData: pipelineState,
           userName: pipelineState.userInfo.name,
-          status
+          status,
+          pipelineId: editingPipelineId ?? undefined
         }
       });
 
@@ -324,15 +309,19 @@ const Index = () => {
         throw error;
       }
 
-      console.log('Pipeline saved successfully:', data);
+      const savedPipeline = data?.data as { id?: string } | null | undefined;
+
+      if (savedPipeline?.id) {
+        setEditingPipelineId(savedPipeline.id);
+      }
 
       toast({
         title: status === 'completed' ? "Pipeline completed!" : "Progress saved",
-        description: status === 'completed' 
+        description: status === 'completed'
           ? "Your pipeline configuration has been completed and saved."
-          : "Your progress has been saved automatically.",
+          : "Your progress has been saved.",
       });
-      
+
       return true;
     } catch (error) {
       console.error('Error saving pipeline:', error);
@@ -966,26 +955,12 @@ const Index = () => {
   };
 
   const handleRestart = () => {
+    skipNextEditLoad.current = true;
+    setSearchParams({}, { replace: true });
+    setEditingPipelineId(null);
     setCurrentStep(-1);
-    setPipelineState({
-      userInfo: { name: '', email: '' },
-      dataEntry: { selectedFileTypes: [], additionalRequirements: '' },
-      powerAnalysis: { selectedMethod: '', selectedEffectSizes: [], powerLevel: '0.8', alphaLevel: '0.05', customEffectSize: '', customMethods: '' },
-      qc: { selectedQCSteps: [], qualityThreshold: '', customQCSteps: '' },
-      lodHandling: { selectedMethod: '', lodThreshold: '', customMethod: '' },
-      outlierDetection: { selectedDetectionMethods: [], selectedHandlingStrategies: [], zScoreThreshold: '3', iqrMultiplier: '1.5', customDetectionMethods: '' },
-      normalization: { selectedMethod: '', selectedBridgingOptions: [], customMethod: '' },
-      batchEffect: { selectedDetectionMethods: [], selectedCorrectionMethod: '', selectedBatchVariables: [], preservedVariables: '', customCorrectionMethod: '' },
-      exploratoryAnalysis: { selectedMethods: [], customMethods: '' },
-      groupComparison: { numberOfGroups: '2', timePoints: '1', dataType: 'cross-sectional', selectedModels: [], useMachineLearning: false },
-      dataTransformation: { selectedTransformations: [], customTransformations: '' },
-      statisticalModeling: { selectedDiagnostics: [], customDiagnostics: '' },
-      comparators: { selectedContrasts: [], selectedExtractionValues: [], customContrasts: '', customExtractionValues: '' },
-      multipleTestingCorrection: { selectedMethod: '', selectedAdditionalMethods: [], customMethods: '' },
-      sensitivityAnalysis: { selectedMethods: [], selectedParameterTypes: [], selectedRobustnessChecks: [], parameterRanges: '', stabilityThreshold: '10', customMethods: '' },
-      visualization: { selectedGraphs: [], selectedTables: [], customVisualizations: '', customTables: '' },
-      export: { selectedFormats: [], selectedReportSections: [], customExportOptions: '', customReportSections: '' }
-    });
+    setPipelineState(createInitialPipelineState());
+    navigate('/', { replace: true });
   };
 
   const getStepStatus = (stepIndex: number) => {
