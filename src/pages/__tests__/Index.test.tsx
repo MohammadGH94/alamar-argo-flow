@@ -11,7 +11,7 @@ const supabaseMocks = vi.hoisted(() => {
   const mockUpdate = vi.fn().mockReturnValue({ eq: mockUpdateEq });
   const mockInvoke = vi.fn().mockResolvedValue({ data: {}, error: null });
   const mockSignOut = vi.fn().mockResolvedValue(undefined);
-  return { mockSelect, mockUpdate, mockInvoke, mockSignOut };
+  return { mockSelect, mockEq, mockSingle, mockUpdate, mockInvoke, mockSignOut };
 });
 
 const authMocks = vi.hoisted(() => ({
@@ -107,13 +107,113 @@ vi.mock('@/components/forms/ExportForm', () => ({
 
 import Index from '../Index';
 
-const { mockInvoke } = supabaseMocks;
+const { mockInvoke, mockSelect, mockSingle } = supabaseMocks;
 const { mockToast } = toastMocks;
+
+const buildPipelineState = () => ({
+  userInfo: {
+    name: 'Existing User',
+    email: 'existing@example.com'
+  },
+  dataEntry: {
+    selectedFileTypes: [],
+    additionalRequirements: ''
+  },
+  powerAnalysis: {
+    selectedMethod: '',
+    selectedEffectSizes: [],
+    powerLevel: '0.8',
+    alphaLevel: '0.05',
+    customEffectSize: '',
+    customMethods: ''
+  },
+  qc: {
+    selectedQCSteps: [],
+    qualityThreshold: '',
+    customQCSteps: ''
+  },
+  lodHandling: {
+    selectedMethod: '',
+    lodThreshold: '',
+    customMethod: ''
+  },
+  outlierDetection: {
+    selectedDetectionMethods: [],
+    selectedHandlingStrategies: [],
+    zScoreThreshold: '3',
+    iqrMultiplier: '1.5',
+    customDetectionMethods: ''
+  },
+  normalization: {
+    selectedMethod: '',
+    selectedBridgingOptions: [],
+    customMethod: ''
+  },
+  batchEffect: {
+    selectedDetectionMethods: [],
+    selectedCorrectionMethod: '',
+    selectedBatchVariables: [],
+    preservedVariables: '',
+    customCorrectionMethod: ''
+  },
+  exploratoryAnalysis: {
+    selectedMethods: [],
+    customMethods: ''
+  },
+  groupComparison: {
+    numberOfGroups: '2',
+    timePoints: '1',
+    dataType: 'cross-sectional',
+    selectedModels: [],
+    useMachineLearning: false
+  },
+  dataTransformation: {
+    selectedTransformations: [],
+    customTransformations: ''
+  },
+  statisticalModeling: {
+    selectedDiagnostics: [],
+    customDiagnostics: ''
+  },
+  comparators: {
+    selectedContrasts: [],
+    selectedExtractionValues: [],
+    customContrasts: '',
+    customExtractionValues: ''
+  },
+  multipleTestingCorrection: {
+    selectedMethod: '',
+    selectedAdditionalMethods: [],
+    customMethods: ''
+  },
+  sensitivityAnalysis: {
+    selectedMethods: [],
+    selectedParameterTypes: [],
+    selectedRobustnessChecks: [],
+    parameterRanges: '',
+    stabilityThreshold: '10',
+    customMethods: ''
+  },
+  visualization: {
+    selectedGraphs: [],
+    selectedTables: [],
+    customVisualizations: '',
+    customTables: ''
+  },
+  export: {
+    selectedFormats: [],
+    selectedReportSections: [],
+    customExportOptions: '',
+    customReportSections: ''
+  }
+});
 
 describe('Index pipeline navigation', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
     mockToast.mockClear();
+    mockSelect.mockClear();
+    mockSingle.mockClear();
   });
 
   it('saves before moving forward with the Next button and allows moving back', async () => {
@@ -172,5 +272,46 @@ describe('Index pipeline navigation', () => {
       name: /Visualization/
     });
     expect(visualizationHeadings[0]).toBeInTheDocument();
+  });
+
+  it('clears the edit context when restarting a pipeline so a new save creates a fresh record', async () => {
+    const pipelineData = buildPipelineState();
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        id: 'existing-pipeline',
+        pipeline_data: pipelineData,
+        status: 'draft'
+      },
+      error: null
+    });
+
+    render(
+      <MemoryRouter initialEntries={[ '/?edit=existing-pipeline' ]}>
+        <Index />
+      </MemoryRouter>
+    );
+
+    const userInfoButton = await screen.findByRole('button', { name: /mock user info form/i });
+    await userEvent.click(userInfoButton);
+
+    const [exportStepButton] = await screen.findAllByRole('button', { name: /Export/i });
+    await userEvent.click(exportStepButton);
+    await waitFor(() => expect(mockInvoke).toHaveBeenCalled());
+
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    await userEvent.click(nextButton);
+
+    const restartButton = await screen.findByRole('button', { name: /configure new pipeline/i });
+    mockSelect.mockClear();
+    mockSingle.mockClear();
+
+    await userEvent.click(restartButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /mock user info form/i })).toBeInTheDocument();
+    });
+
+    expect(mockSelect).not.toHaveBeenCalled();
+    expect(mockSingle).not.toHaveBeenCalled();
   });
 });

@@ -59,19 +59,11 @@ serve(async (req) => {
       }
     );
 
-    const { pipelineData, userName, status } = await req.json();
-
-    // Check if user already has a pipeline response
-    const { data: existingResponse, error: checkError } = await supabase
-      .from('pipeline_responses')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
+    const { pipelineData, userName, status, pipelineId } = await req.json();
 
     let result;
 
-    if (existingResponse) {
-      // Update existing response
+    if (pipelineId) {
       const { data, error } = await supabase
         .from('pipeline_responses')
         .update({
@@ -80,6 +72,7 @@ serve(async (req) => {
           user_name: userName,
           updated_at: new Date().toISOString()
         })
+        .eq('id', pipelineId)
         .eq('user_id', user.id)
         .select()
         .single();
@@ -87,7 +80,6 @@ serve(async (req) => {
       if (error) throw error;
       result = data;
     } else {
-      // Create new response
       const { data, error } = await supabase
         .from('pipeline_responses')
         .insert({
