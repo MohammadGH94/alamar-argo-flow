@@ -1022,7 +1022,11 @@ const Index = () => {
           <div className="flex flex-wrap gap-2 mb-4">
             {steps.map((step, index) => (
               <div key={index} className="flex items-center">
-                <div className="flex items-center">
+                <button
+                  onClick={() => setCurrentStep(index)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-accent hover:shadow-sm cursor-pointer group"
+                  title={step.title}
+                >
                   {getStepStatus(index) === 'completed' ? (
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                   ) : getStepStatus(index) === 'current' ? (
@@ -1032,13 +1036,19 @@ const Index = () => {
                   )}
                   <Badge 
                     variant={getStepStatus(index) === 'current' ? 'default' : 'secondary'}
-                    className="ml-2"
                   >
                     {index + 1}
                   </Badge>
-                </div>
+                  <span className={`text-xs font-medium ${
+                    getStepStatus(index) === 'current' 
+                      ? 'text-primary' 
+                      : 'text-muted-foreground'
+                  } group-hover:text-foreground transition-colors`}>
+                    {step.title}
+                  </span>
+                </button>
                 {index < steps.length - 1 && (
-                  <div className="w-4 h-0.5 bg-gray-200 mx-2" />
+                  <div className="w-4 h-0.5 bg-border mx-2" />
                 )}
               </div>
             ))}
