@@ -60,6 +60,17 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## How can I verify the pipeline navigation still works?
+
+The pipeline configuration flow now ships with automated tests that cover moving forward, backward, jumping across steps from the progress tracker, and restarting a completed build to start a brand new pipeline without overwriting the previous one. After installing dependencies, run the Vitest suite to confirm navigation still persists progress as expected:
+
+```sh
+npm install
+npm run test
+```
+
+If the tests pass you can be confident the navigation helpers will behave correctly once these changes are merged.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/873b7260-1ac8-4ff8-b470-61c5d25e7179) and click on Share -> Publish.

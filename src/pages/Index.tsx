@@ -294,6 +294,7 @@ const Index = () => {
           .update({
             pipeline_data: pipelineState as any,
             status,
+            user_name: pipelineState.userInfo.name,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingPipelineId);
@@ -325,6 +326,11 @@ const Index = () => {
       }
 
       console.log('Pipeline saved successfully:', data);
+
+      const insertedPipelineId = (data as { data?: { id?: string } })?.data?.id;
+      if (insertedPipelineId) {
+        setEditingPipelineId(insertedPipelineId);
+      }
 
       toast({
         title: status === 'completed' ? "Pipeline completed!" : "Progress saved",
@@ -937,26 +943,37 @@ const Index = () => {
     }
   ];
 
+  const navigateToStep = async (targetStep: number) => {
+    const clampedStep = Math.max(-1, Math.min(targetStep, steps.length));
+
+    if (clampedStep === currentStep) {
+      return;
+    }
+
+    if (clampedStep > currentStep) {
+      const status = clampedStep === steps.length ? 'completed' : 'draft';
+      const saved = await savePipelineData(status);
+      if (!saved) {
+        return;
+      }
+    }
+
+    setCurrentStep(clampedStep);
+  };
+
   const handleNext = async () => {
     if (currentStep < steps.length) {
-      // Save progress first, only navigate if successful
-      const saved = await savePipelineData(currentStep === steps.length - 1 ? 'completed' : 'draft');
-      if (saved) {
-        setCurrentStep(currentStep + 1);
-      }
+      await navigateToStep(currentStep + 1);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    } else if (currentStep === 0) {
-      setCurrentStep(-1); // Go back to user info
-    }
+  const handlePrevious = async () => {
+    await navigateToStep(currentStep - 1);
   };
 
   const handleRestart = () => {
     setCurrentStep(-1);
+    setEditingPipelineId(null);
     setPipelineState({
       userInfo: { name: '', email: '' },
       dataEntry: { selectedFileTypes: [], additionalRequirements: '' },
@@ -1023,7 +1040,10 @@ const Index = () => {
             {steps.map((step, index) => (
               <div key={index} className="flex items-center">
                 <button
-                  onClick={() => setCurrentStep(index)}
+                  type="button"
+                  onClick={() => {
+                    void navigateToStep(index);
+                  }}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-accent hover:shadow-sm cursor-pointer group"
                   title={step.title}
                 >
@@ -1103,10 +1123,10 @@ const Index = () => {
 
         {/* Navigation */}
         <div className="flex justify-between mt-6">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handlePrevious}
-            disabled={currentStep === 0}
+            disabled={currentStep === -1}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             Previous
