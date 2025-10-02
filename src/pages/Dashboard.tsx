@@ -261,7 +261,11 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {responses.map((response) => (
-                  <div key={response.id} className="border rounded-lg p-4">
+                  <div 
+                    key={response.id} 
+                    className="border rounded-lg p-4 hover:bg-accent cursor-pointer transition-colors"
+                    onClick={() => navigate(`/?edit=${response.id}`)}
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h3 className="font-semibold">{response.user_name}</h3>
@@ -297,6 +301,9 @@ export default function Dashboard() {
                       <div>
                         Visualizations: {response.pipeline_data.visualization?.selectedTypes?.length || 0}
                       </div>
+                    </div>
+                    <div className="mt-3 text-sm text-primary font-medium">
+                      Click to {response.status === 'completed' ? 'view' : 'continue editing'} →
                     </div>
                   </div>
                 ))}

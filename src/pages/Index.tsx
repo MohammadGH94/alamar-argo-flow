@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -128,6 +128,7 @@ interface PipelineState {
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(-1); // Start with user info form (-1)
+  const [editingPipelineId, setEditingPipelineId] = useState<string | null>(null);
   const [pipelineState, setPipelineState] = useState<PipelineState>({
     userInfo: {
       name: '',
@@ -229,12 +230,53 @@ const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
+
+  // Load pipeline data if editing
+  useEffect(() => {
+    const loadPipelineForEditing = async () => {
+      const editId = searchParams.get('edit');
+      if (!editId || !user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('pipeline_responses')
+          .select('*')
+          .eq('id', editId)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setEditingPipelineId(editId);
+          setPipelineState(data.pipeline_data as unknown as PipelineState);
+          setCurrentStep(0); // Start at first step when editing
+          
+          toast({
+            title: "Pipeline loaded",
+            description: `Loaded ${data.status} pipeline for editing.`,
+          });
+        }
+      } catch (error) {
+        console.error('Error loading pipeline:', error);
+        toast({
+          title: "Error loading pipeline",
+          description: "Could not load the pipeline. Please try again.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    if (!loading && user) {
+      loadPipelineForEditing();
+    }
+  }, [user, loading, searchParams, toast]);
 
   const savePipelineData = async (status: 'draft' | 'completed' = 'draft'): Promise<boolean> => {
     if (!user || !pipelineState.userInfo.name) {
@@ -243,8 +285,32 @@ const Index = () => {
     }
 
     try {
-      console.log('Saving pipeline data...', { status, userId: user.id });
+      console.log('Saving pipeline data...', { status, userId: user.id, editingId: editingPipelineId });
       
+      // If editing existing pipeline, update it directly
+      if (editingPipelineId) {
+        const { error } = await supabase
+          .from('pipeline_responses')
+          .update({
+            pipeline_data: pipelineState as any,
+            status,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingPipelineId);
+
+        if (error) throw error;
+        
+        toast({
+          title: status === 'completed' ? "Pipeline completed!" : "Progress saved",
+          description: status === 'completed' 
+            ? "Your pipeline configuration has been completed and saved."
+            : "Your changes have been saved.",
+        });
+        
+        return true;
+      }
+      
+      // Otherwise create new pipeline via edge function
       const { data, error } = await supabase.functions.invoke('save-pipeline', {
         body: {
           pipelineData: pipelineState,
