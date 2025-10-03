@@ -14,7 +14,8 @@ import {
   Calendar,
   LogOut,
   Home,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
 
 interface PipelineResponse {
@@ -104,6 +105,32 @@ export default function Dashboard() {
     // Start a brand-new pipeline in the builder without pre-creating a DB row.
     // A new record will be created on the first save from the builder.
     navigate('/');
+  };
+
+  const handleDeletePipeline = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      const { error } = await supabase
+        .from('pipeline_responses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Pipeline deleted",
+        description: "The pipeline configuration has been removed."
+      });
+
+      await loadDashboardData();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting pipeline",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSignOut = async () => {
@@ -291,6 +318,14 @@ export default function Dashboard() {
                         <span className="text-sm text-muted-foreground">
                           {getStepProgress(response.pipeline_data)}% complete
                         </span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => handleDeletePipeline(response.id, e)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                     
