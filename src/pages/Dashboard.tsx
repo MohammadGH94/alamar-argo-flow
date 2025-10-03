@@ -100,6 +100,39 @@ export default function Dashboard() {
     }
   };
 
+  const handleNewPipeline = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+
+      // Create new pipeline entry
+      const { data: newPipeline, error } = await supabase
+        .from('pipeline_responses')
+        .insert({
+          user_id: session.user.id,
+          user_name: userProfile?.name || 'Unknown User',
+          status: 'draft',
+          pipeline_data: {}
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to edit the new pipeline
+      navigate(`/?edit=${newPipeline.id}`);
+    } catch (error: any) {
+      toast({
+        title: "Error creating pipeline",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
@@ -176,7 +209,7 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate('/')}>
+            <Button onClick={handleNewPipeline}>
               <Plus className="h-4 w-4 mr-2" />
               New Pipeline
             </Button>
@@ -253,7 +286,7 @@ export default function Dashboard() {
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">No pipeline configurations yet</p>
-                <Button className="mt-4" onClick={() => navigate('/')}>
+                <Button className="mt-4" onClick={handleNewPipeline}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create First Pipeline
                 </Button>
