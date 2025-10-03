@@ -100,37 +100,10 @@ export default function Dashboard() {
     }
   };
 
-  const handleNewPipeline = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/auth');
-        return;
-      }
-
-      // Create new pipeline entry
-      const { data: newPipeline, error } = await supabase
-        .from('pipeline_responses')
-        .insert({
-          user_id: session.user.id,
-          user_name: userProfile?.name || 'Unknown User',
-          status: 'draft',
-          pipeline_data: {}
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Navigate to edit the new pipeline
-      navigate(`/?edit=${newPipeline.id}`);
-    } catch (error: any) {
-      toast({
-        title: "Error creating pipeline",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+  const handleNewPipeline = () => {
+    // Start a brand-new pipeline in the builder without pre-creating a DB row.
+    // A new record will be created on the first save from the builder.
+    navigate('/');
   };
 
   const handleSignOut = async () => {
