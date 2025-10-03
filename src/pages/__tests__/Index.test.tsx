@@ -106,6 +106,8 @@ vi.mock('@/components/forms/ExportForm', () => ({
 }));
 
 import Index from '../Index';
+import { beforeEach } from 'vitest';
+import '@testing-library/jest-dom';
 
 const { mockInvoke, mockSelect, mockSingle } = supabaseMocks;
 const { mockToast } = toastMocks;

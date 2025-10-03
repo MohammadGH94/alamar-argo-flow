@@ -176,9 +176,9 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/')}>
-              <Home className="h-4 w-4 mr-2" />
-              Pipeline Builder
+            <Button onClick={() => navigate('/')}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Pipeline
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
