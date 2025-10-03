@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Circle, ChevronLeft, ChevronRight, RotateCcw, LogOut, BarChart3, Save } from "lucide-react";
+import { CheckCircle2, Circle, ChevronLeft, ChevronRight, RotateCcw, LogOut, BarChart3, Save, LayoutDashboard } from "lucide-react";
 import { UserInfoForm } from "@/components/UserInfoForm";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -370,10 +370,16 @@ const Index = () => {
               <h1 className="text-3xl font-bold text-foreground">Alamar Argo</h1>
               <p className="text-muted-foreground">Analytical Pipeline Builder</p>
             </div>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+              <Button variant="outline" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </header>
         
