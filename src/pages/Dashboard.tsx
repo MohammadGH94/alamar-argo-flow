@@ -15,7 +15,8 @@ import {
   LogOut,
   Home,
   Plus,
-  Trash2
+  Trash2,
+  PieChart
 } from 'lucide-react';
 
 interface PipelineResponse {
@@ -212,6 +213,10 @@ export default function Dashboard() {
             <Button onClick={handleNewPipeline}>
               <Plus className="h-4 w-4 mr-2" />
               New Pipeline
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/summary')}>
+              <PieChart className="h-4 w-4 mr-2" />
+              View Summary
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
