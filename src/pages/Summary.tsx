@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, TrendingUp, Users, Clock, Activity } from "lucide-react";
+import { ArrowLeft, TrendingUp, Users, Clock, Activity, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 
 interface PipelineResponse {
@@ -118,6 +120,148 @@ const Summary = () => {
         count,
       };
     }).filter(item => item.count > 0).sort((a, b) => b.count - a.count).slice(0, 10);
+  };
+
+  // Get selected options breakdown for each step
+  const getOptionBreakdown = () => {
+    const breakdowns: Record<string, Record<string, number>> = {};
+
+    pipelines.forEach(pipeline => {
+      const data = pipeline.pipeline_data;
+
+      // Data Entry - File Types
+      if (data.dataEntry?.selectedFileTypes) {
+        if (!breakdowns.dataEntry) breakdowns.dataEntry = {};
+        data.dataEntry.selectedFileTypes.forEach((type: string) => {
+          breakdowns.dataEntry[type] = (breakdowns.dataEntry[type] || 0) + 1;
+        });
+      }
+
+      // QC Methods
+      if (data.qc?.selectedMethods) {
+        if (!breakdowns.qc) breakdowns.qc = {};
+        data.qc.selectedMethods.forEach((method: string) => {
+          breakdowns.qc[method] = (breakdowns.qc[method] || 0) + 1;
+        });
+      }
+
+      // LOD Handling
+      if (data.lodHandling?.selectedMethods) {
+        if (!breakdowns.lodHandling) breakdowns.lodHandling = {};
+        data.lodHandling.selectedMethods.forEach((method: string) => {
+          breakdowns.lodHandling[method] = (breakdowns.lodHandling[method] || 0) + 1;
+        });
+      }
+
+      // Normalization
+      if (data.normalization?.selectedMethods) {
+        if (!breakdowns.normalization) breakdowns.normalization = {};
+        data.normalization.selectedMethods.forEach((method: string) => {
+          breakdowns.normalization[method] = (breakdowns.normalization[method] || 0) + 1;
+        });
+      }
+
+      // Batch Effect
+      if (data.batchEffect?.selectedMethods) {
+        if (!breakdowns.batchEffect) breakdowns.batchEffect = {};
+        data.batchEffect.selectedMethods.forEach((method: string) => {
+          breakdowns.batchEffect[method] = (breakdowns.batchEffect[method] || 0) + 1;
+        });
+      }
+
+      // Outlier Detection
+      if (data.outlierDetection?.selectedMethods) {
+        if (!breakdowns.outlierDetection) breakdowns.outlierDetection = {};
+        data.outlierDetection.selectedMethods.forEach((method: string) => {
+          breakdowns.outlierDetection[method] = (breakdowns.outlierDetection[method] || 0) + 1;
+        });
+      }
+
+      // Data Transformation
+      if (data.dataTransformation?.selectedTransformations) {
+        if (!breakdowns.dataTransformation) breakdowns.dataTransformation = {};
+        data.dataTransformation.selectedTransformations.forEach((transform: string) => {
+          breakdowns.dataTransformation[transform] = (breakdowns.dataTransformation[transform] || 0) + 1;
+        });
+      }
+
+      // Exploratory Analysis
+      if (data.exploratoryAnalysis?.selectedMethods) {
+        if (!breakdowns.exploratoryAnalysis) breakdowns.exploratoryAnalysis = {};
+        data.exploratoryAnalysis.selectedMethods.forEach((method: string) => {
+          breakdowns.exploratoryAnalysis[method] = (breakdowns.exploratoryAnalysis[method] || 0) + 1;
+        });
+      }
+
+      // Statistical Modeling
+      if (data.statisticalModeling?.selectedMethods) {
+        if (!breakdowns.statisticalModeling) breakdowns.statisticalModeling = {};
+        data.statisticalModeling.selectedMethods.forEach((method: string) => {
+          breakdowns.statisticalModeling[method] = (breakdowns.statisticalModeling[method] || 0) + 1;
+        });
+      }
+
+      // Multiple Testing Correction
+      if (data.multipleTestingCorrection?.selectedMethods) {
+        if (!breakdowns.multipleTestingCorrection) breakdowns.multipleTestingCorrection = {};
+        data.multipleTestingCorrection.selectedMethods.forEach((method: string) => {
+          breakdowns.multipleTestingCorrection[method] = (breakdowns.multipleTestingCorrection[method] || 0) + 1;
+        });
+      }
+
+      // Power Analysis
+      if (data.powerAnalysis?.selectedMethods) {
+        if (!breakdowns.powerAnalysis) breakdowns.powerAnalysis = {};
+        data.powerAnalysis.selectedMethods.forEach((method: string) => {
+          breakdowns.powerAnalysis[method] = (breakdowns.powerAnalysis[method] || 0) + 1;
+        });
+      }
+
+      // Sensitivity Analysis
+      if (data.sensitivityAnalysis?.selectedMethods) {
+        if (!breakdowns.sensitivityAnalysis) breakdowns.sensitivityAnalysis = {};
+        data.sensitivityAnalysis.selectedMethods.forEach((method: string) => {
+          breakdowns.sensitivityAnalysis[method] = (breakdowns.sensitivityAnalysis[method] || 0) + 1;
+        });
+      }
+
+      // Visualization
+      if (data.visualization?.selectedTypes) {
+        if (!breakdowns.visualization) breakdowns.visualization = {};
+        data.visualization.selectedTypes.forEach((type: string) => {
+          breakdowns.visualization[type] = (breakdowns.visualization[type] || 0) + 1;
+        });
+      }
+
+      // Export Formats
+      if (data.export?.selectedFormats) {
+        if (!breakdowns.exportData) breakdowns.exportData = {};
+        data.export.selectedFormats.forEach((format: string) => {
+          breakdowns.exportData[format] = (breakdowns.exportData[format] || 0) + 1;
+        });
+      }
+    });
+
+    return breakdowns;
+  };
+
+  const optionBreakdowns = getOptionBreakdown();
+
+  const stepLabels: Record<string, string> = {
+    dataEntry: 'Data Entry - File Types',
+    qc: 'Quality Control Methods',
+    lodHandling: 'LOD Handling Methods',
+    normalization: 'Normalization Methods',
+    batchEffect: 'Batch Effect Methods',
+    outlierDetection: 'Outlier Detection Methods',
+    dataTransformation: 'Data Transformation Methods',
+    exploratoryAnalysis: 'Exploratory Analysis Methods',
+    statisticalModeling: 'Statistical Modeling Methods',
+    multipleTestingCorrection: 'Multiple Testing Correction Methods',
+    powerAnalysis: 'Power Analysis Methods',
+    sensitivityAnalysis: 'Sensitivity Analysis Methods',
+    visualization: 'Visualization Types',
+    exportData: 'Export Formats'
   };
 
   if (loading) {
@@ -241,7 +385,7 @@ const Summary = () => {
         </div>
 
         {/* Analysis Steps Usage */}
-        <Card>
+        <Card className="mb-8">
           <CardHeader>
             <CardTitle>Most Used Analysis Steps</CardTitle>
           </CardHeader>
@@ -257,6 +401,47 @@ const Summary = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        {/* Detailed Option Breakdown */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold">Selected Options Breakdown</h2>
+          <p className="text-muted-foreground mb-4">
+            Detailed summary of all selected options across pipeline steps
+          </p>
+          
+          {Object.entries(optionBreakdowns).map(([stepKey, options]) => (
+            <Card key={stepKey}>
+              <CardHeader>
+                <CardTitle className="text-lg">{stepLabels[stepKey] || stepKey}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Object.entries(options)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([option, count]) => (
+                      <div 
+                        key={option}
+                        className="flex items-center justify-between p-3 border rounded-lg bg-muted/50"
+                      >
+                        <span className="text-sm font-medium">{option}</span>
+                        <Badge variant="secondary">
+                          {count} {count === 1 ? 'pipeline' : 'pipelines'}
+                        </Badge>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {Object.keys(optionBreakdowns).length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center text-muted-foreground">
+                No pipeline data available yet
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
