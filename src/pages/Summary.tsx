@@ -193,11 +193,31 @@ const Summary = () => {
         });
       }
 
+      // Group Comparison
+      if (data.groupComparison) {
+        if (!breakdowns.groupComparison) breakdowns.groupComparison = {};
+        if (data.groupComparison.numberOfGroups) {
+          const key = `${data.groupComparison.numberOfGroups} groups`;
+          breakdowns.groupComparison[key] = (breakdowns.groupComparison[key] || 0) + 1;
+        }
+        if (data.groupComparison.comparisonType) {
+          breakdowns.groupComparison[data.groupComparison.comparisonType] = (breakdowns.groupComparison[data.groupComparison.comparisonType] || 0) + 1;
+        }
+      }
+
       // Statistical Modeling
       if (data.statisticalModeling?.selectedMethods) {
         if (!breakdowns.statisticalModeling) breakdowns.statisticalModeling = {};
         data.statisticalModeling.selectedMethods.forEach((method: string) => {
           breakdowns.statisticalModeling[method] = (breakdowns.statisticalModeling[method] || 0) + 1;
+        });
+      }
+
+      // Comparators
+      if (data.comparators?.selectedMethods) {
+        if (!breakdowns.comparators) breakdowns.comparators = {};
+        data.comparators.selectedMethods.forEach((method: string) => {
+          breakdowns.comparators[method] = (breakdowns.comparators[method] || 0) + 1;
         });
       }
 
@@ -256,7 +276,9 @@ const Summary = () => {
     outlierDetection: 'Outlier Detection Methods',
     dataTransformation: 'Data Transformation Methods',
     exploratoryAnalysis: 'Exploratory Analysis Methods',
+    groupComparison: 'Group Comparison Settings',
     statisticalModeling: 'Statistical Modeling Methods',
+    comparators: 'Comparator Methods',
     multipleTestingCorrection: 'Multiple Testing Correction Methods',
     powerAnalysis: 'Power Analysis Methods',
     sensitivityAnalysis: 'Sensitivity Analysis Methods',
