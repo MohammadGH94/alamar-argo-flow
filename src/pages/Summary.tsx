@@ -185,10 +185,16 @@ const Summary = () => {
       }
 
       // Outlier Detection
-      if (data.outlierDetection?.selectedMethods) {
+      if (data.outlierDetection?.selectedDetectionMethods) {
         if (!breakdowns.outlierDetection) breakdowns.outlierDetection = {};
-        data.outlierDetection.selectedMethods.forEach((method: string) => {
+        data.outlierDetection.selectedDetectionMethods.forEach((method: string) => {
           breakdowns.outlierDetection[method] = (breakdowns.outlierDetection[method] || 0) + 1;
+        });
+      }
+      if (data.outlierDetection?.selectedHandlingStrategies) {
+        if (!breakdowns.outlierDetection) breakdowns.outlierDetection = {};
+        data.outlierDetection.selectedHandlingStrategies.forEach((strategy: string) => {
+          breakdowns.outlierDetection[strategy] = (breakdowns.outlierDetection[strategy] || 0) + 1;
         });
       }
 
@@ -256,10 +262,15 @@ const Summary = () => {
       }
 
       // Power Analysis
-      if (data.powerAnalysis?.selectedAnalyses) {
+      if (data.powerAnalysis?.selectedMethod) {
         if (!breakdowns.powerAnalysis) breakdowns.powerAnalysis = {};
-        data.powerAnalysis.selectedAnalyses.forEach((method: string) => {
-          breakdowns.powerAnalysis[method] = (breakdowns.powerAnalysis[method] || 0) + 1;
+        const method = data.powerAnalysis.selectedMethod;
+        breakdowns.powerAnalysis[method] = (breakdowns.powerAnalysis[method] || 0) + 1;
+      }
+      if (data.powerAnalysis?.selectedEffectSizes) {
+        if (!breakdowns.powerAnalysis) breakdowns.powerAnalysis = {};
+        data.powerAnalysis.selectedEffectSizes.forEach((size: string) => {
+          breakdowns.powerAnalysis[size] = (breakdowns.powerAnalysis[size] || 0) + 1;
         });
       }
 
