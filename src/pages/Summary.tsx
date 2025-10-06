@@ -138,34 +138,49 @@ const Summary = () => {
       }
 
       // QC Methods
-      if (data.qc?.selectedMethods) {
+      if (data.qc?.selectedQCSteps) {
         if (!breakdowns.qc) breakdowns.qc = {};
-        data.qc.selectedMethods.forEach((method: string) => {
+        data.qc.selectedQCSteps.forEach((method: string) => {
           breakdowns.qc[method] = (breakdowns.qc[method] || 0) + 1;
         });
       }
 
       // LOD Handling
-      if (data.lodHandling?.selectedMethods) {
+      if (data.lodHandling?.selectedMethod) {
         if (!breakdowns.lodHandling) breakdowns.lodHandling = {};
-        data.lodHandling.selectedMethods.forEach((method: string) => {
-          breakdowns.lodHandling[method] = (breakdowns.lodHandling[method] || 0) + 1;
-        });
+        const method = data.lodHandling.selectedMethod;
+        breakdowns.lodHandling[method] = (breakdowns.lodHandling[method] || 0) + 1;
       }
 
       // Normalization
-      if (data.normalization?.selectedMethods) {
+      if (data.normalization?.selectedMethod) {
         if (!breakdowns.normalization) breakdowns.normalization = {};
-        data.normalization.selectedMethods.forEach((method: string) => {
-          breakdowns.normalization[method] = (breakdowns.normalization[method] || 0) + 1;
+        const method = data.normalization.selectedMethod;
+        breakdowns.normalization[method] = (breakdowns.normalization[method] || 0) + 1;
+      }
+      if (data.normalization?.selectedBridgingOptions) {
+        if (!breakdowns.normalization) breakdowns.normalization = {};
+        data.normalization.selectedBridgingOptions.forEach((option: string) => {
+          breakdowns.normalization[option] = (breakdowns.normalization[option] || 0) + 1;
         });
       }
 
       // Batch Effect
-      if (data.batchEffect?.selectedMethods) {
+      if (data.batchEffect?.selectedDetectionMethods) {
         if (!breakdowns.batchEffect) breakdowns.batchEffect = {};
-        data.batchEffect.selectedMethods.forEach((method: string) => {
+        data.batchEffect.selectedDetectionMethods.forEach((method: string) => {
           breakdowns.batchEffect[method] = (breakdowns.batchEffect[method] || 0) + 1;
+        });
+      }
+      if (data.batchEffect?.selectedCorrectionMethod) {
+        if (!breakdowns.batchEffect) breakdowns.batchEffect = {};
+        const method = data.batchEffect.selectedCorrectionMethod;
+        breakdowns.batchEffect[method] = (breakdowns.batchEffect[method] || 0) + 1;
+      }
+      if (data.batchEffect?.selectedBatchVariables) {
+        if (!breakdowns.batchEffect) breakdowns.batchEffect = {};
+        data.batchEffect.selectedBatchVariables.forEach((variable: string) => {
+          breakdowns.batchEffect[variable] = (breakdowns.batchEffect[variable] || 0) + 1;
         });
       }
 
@@ -206,33 +221,44 @@ const Summary = () => {
       }
 
       // Statistical Modeling
-      if (data.statisticalModeling?.selectedMethods) {
+      if (data.statisticalModeling?.selectedDiagnostics) {
         if (!breakdowns.statisticalModeling) breakdowns.statisticalModeling = {};
-        data.statisticalModeling.selectedMethods.forEach((method: string) => {
+        data.statisticalModeling.selectedDiagnostics.forEach((method: string) => {
           breakdowns.statisticalModeling[method] = (breakdowns.statisticalModeling[method] || 0) + 1;
         });
       }
 
       // Comparators
-      if (data.comparators?.selectedMethods) {
+      if (data.comparators?.selectedContrasts) {
         if (!breakdowns.comparators) breakdowns.comparators = {};
-        data.comparators.selectedMethods.forEach((method: string) => {
+        data.comparators.selectedContrasts.forEach((method: string) => {
+          breakdowns.comparators[method] = (breakdowns.comparators[method] || 0) + 1;
+        });
+      }
+      if (data.comparators?.selectedExtractionValues) {
+        if (!breakdowns.comparators) breakdowns.comparators = {};
+        data.comparators.selectedExtractionValues.forEach((method: string) => {
           breakdowns.comparators[method] = (breakdowns.comparators[method] || 0) + 1;
         });
       }
 
       // Multiple Testing Correction
-      if (data.multipleTestingCorrection?.selectedMethods) {
+      if (data.multipleTestingCorrection?.primaryMethod) {
         if (!breakdowns.multipleTestingCorrection) breakdowns.multipleTestingCorrection = {};
-        data.multipleTestingCorrection.selectedMethods.forEach((method: string) => {
+        const method = data.multipleTestingCorrection.primaryMethod;
+        breakdowns.multipleTestingCorrection[method] = (breakdowns.multipleTestingCorrection[method] || 0) + 1;
+      }
+      if (data.multipleTestingCorrection?.additionalMethods) {
+        if (!breakdowns.multipleTestingCorrection) breakdowns.multipleTestingCorrection = {};
+        data.multipleTestingCorrection.additionalMethods.forEach((method: string) => {
           breakdowns.multipleTestingCorrection[method] = (breakdowns.multipleTestingCorrection[method] || 0) + 1;
         });
       }
 
       // Power Analysis
-      if (data.powerAnalysis?.selectedMethods) {
+      if (data.powerAnalysis?.selectedAnalyses) {
         if (!breakdowns.powerAnalysis) breakdowns.powerAnalysis = {};
-        data.powerAnalysis.selectedMethods.forEach((method: string) => {
+        data.powerAnalysis.selectedAnalyses.forEach((method: string) => {
           breakdowns.powerAnalysis[method] = (breakdowns.powerAnalysis[method] || 0) + 1;
         });
       }
