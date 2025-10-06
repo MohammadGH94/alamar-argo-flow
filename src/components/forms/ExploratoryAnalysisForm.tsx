@@ -25,6 +25,16 @@ export const ExploratoryAnalysisForm: React.FC<ExploratoryAnalysisFormProps> = (
       description: 'Dimensional reduction and pattern identification'
     },
     {
+      id: 'tsne-umap',
+      label: 't-SNE/UMAP',
+      description: 'Non-linear dimensionality reduction for complex pattern visualization'
+    },
+    {
+      id: 'hierarchical-clustering',
+      label: 'Hierarchical Clustering',
+      description: 'Dendrogram-based sample grouping and similarity analysis'
+    },
+    {
       id: 'heatmaps',
       label: 'Heat Maps',
       description: 'Visual correlation matrices and clustering'
@@ -33,6 +43,36 @@ export const ExploratoryAnalysisForm: React.FC<ExploratoryAnalysisFormProps> = (
       id: 'volcano-plots',
       label: 'Volcano Plots',
       description: 'Statistical significance vs fold-change visualization'
+    },
+    {
+      id: 'box-violin-plots',
+      label: 'Box Plots/Violin Plots',
+      description: 'Distribution visualization by group'
+    },
+    {
+      id: 'scatter-plot-matrices',
+      label: 'Scatter Plot Matrices',
+      description: 'Pairwise relationships between analytes'
+    },
+    {
+      id: 'correlation-networks',
+      label: 'Correlation Networks',
+      description: 'Analyte-analyte relationship mapping'
+    },
+    {
+      id: 'outlier-identification-plots',
+      label: 'Outlier Identification Plots',
+      description: "Cook's distance, leverage plots, and anomaly detection"
+    },
+    {
+      id: 'time-series-analysis',
+      label: 'Time Series Analysis',
+      description: 'Temporal trends and patterns for longitudinal data'
+    },
+    {
+      id: 'dose-response-curves',
+      label: 'Dose-Response Curves',
+      description: 'Concentration-effect relationships and EC50 determination'
     },
     {
       id: 'individual-analyte',
