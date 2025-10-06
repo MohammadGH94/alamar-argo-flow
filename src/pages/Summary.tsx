@@ -311,22 +311,22 @@ const Summary = () => {
   const optionBreakdowns = getOptionBreakdown();
 
   const stepLabels: Record<string, string> = {
-    dataEntry: 'Data Entry - File Types',
-    qc: 'Quality Control Methods',
-    lodHandling: 'LOD Handling Methods',
-    normalization: 'Normalization Methods',
-    batchEffect: 'Batch Effect Methods',
-    outlierDetection: 'Outlier Detection Methods',
-    dataTransformation: 'Data Transformation Methods',
-    exploratoryAnalysis: 'Exploratory Analysis Methods',
-    groupComparison: 'Group Comparison Settings',
-    statisticalModeling: 'Statistical Modeling Methods',
-    comparators: 'Comparator Methods',
-    multipleTestingCorrection: 'Multiple Testing Correction Methods',
-    powerAnalysis: 'Power Analysis Methods',
-    sensitivityAnalysis: 'Sensitivity Analysis Methods',
-    visualization: 'Visualization Types',
-    exportData: 'Export Formats'
+    dataEntry: '1. Data Entry - File Types',
+    qc: '2. Quality Control Methods',
+    lodHandling: '3. LOD Handling Methods',
+    normalization: '4. Normalization Methods',
+    batchEffect: '5. Batch Effect Methods',
+    outlierDetection: '6. Outlier Detection Methods',
+    dataTransformation: '7. Data Transformation Methods',
+    exploratoryAnalysis: '8. Exploratory Analysis Methods',
+    groupComparison: '9. Group Comparison Settings',
+    statisticalModeling: '10. Statistical Modeling Methods',
+    comparators: '11. Comparator Methods',
+    multipleTestingCorrection: '12. Multiple Testing Correction Methods',
+    powerAnalysis: '13. Power Analysis Methods',
+    sensitivityAnalysis: '14. Sensitivity Analysis Methods',
+    visualization: '15. Visualization Types',
+    exportData: '16. Export Formats'
   };
 
   if (loading) {
