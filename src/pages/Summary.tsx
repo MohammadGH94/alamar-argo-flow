@@ -249,14 +249,14 @@ const Summary = () => {
       }
 
       // Multiple Testing Correction
-      if (data.multipleTestingCorrection?.primaryMethod) {
+      if (data.multipleTestingCorrection?.selectedMethod) {
         if (!breakdowns.multipleTestingCorrection) breakdowns.multipleTestingCorrection = {};
-        const method = data.multipleTestingCorrection.primaryMethod;
+        const method = data.multipleTestingCorrection.selectedMethod;
         breakdowns.multipleTestingCorrection[method] = (breakdowns.multipleTestingCorrection[method] || 0) + 1;
       }
-      if (data.multipleTestingCorrection?.additionalMethods) {
+      if (data.multipleTestingCorrection?.selectedAdditionalMethods) {
         if (!breakdowns.multipleTestingCorrection) breakdowns.multipleTestingCorrection = {};
-        data.multipleTestingCorrection.additionalMethods.forEach((method: string) => {
+        data.multipleTestingCorrection.selectedAdditionalMethods.forEach((method: string) => {
           breakdowns.multipleTestingCorrection[method] = (breakdowns.multipleTestingCorrection[method] || 0) + 1;
         });
       }
@@ -283,9 +283,15 @@ const Summary = () => {
       }
 
       // Visualization
-      if (data.visualization?.selectedTypes) {
+      if (data.visualization?.selectedGraphs) {
         if (!breakdowns.visualization) breakdowns.visualization = {};
-        data.visualization.selectedTypes.forEach((type: string) => {
+        data.visualization.selectedGraphs.forEach((type: string) => {
+          breakdowns.visualization[type] = (breakdowns.visualization[type] || 0) + 1;
+        });
+      }
+      if (data.visualization?.selectedTables) {
+        if (!breakdowns.visualization) breakdowns.visualization = {};
+        data.visualization.selectedTables.forEach((type: string) => {
           breakdowns.visualization[type] = (breakdowns.visualization[type] || 0) + 1;
         });
       }
