@@ -236,6 +236,17 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const skipNextEditLoad = useRef(false);
 
+  // Handle explicit "new pipeline" request from dashboard
+  useEffect(() => {
+    const isNewPipeline = searchParams.get('new');
+    if (isNewPipeline === 'true' && editingPipelineId) {
+      console.log('Forcing new pipeline, clearing editing ID:', editingPipelineId);
+      setEditingPipelineId(null);
+      setPipelineState(createInitialPipelineState());
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, editingPipelineId, setSearchParams]);
+
   useEffect(() => {
     const initializeUser = async () => {
       if (!loading && !user) {
@@ -254,6 +265,7 @@ const Index = () => {
           setUserProfile(profile);
           // Auto-fill user info from profile for new pipelines
           if (!editingPipelineId && !pipelineState.userInfo.name) {
+            console.log('Auto-filling user info from profile');
             setPipelineState(prev => ({
               ...prev,
               userInfo: {
@@ -329,7 +341,13 @@ const Index = () => {
     }
 
     try {
-      console.log('Saving pipeline data...', { status, userId: user.id, editingId: editingPipelineId });
+      console.log('Saving pipeline data...', { 
+        status, 
+        userId: user.id, 
+        editingId: editingPipelineId,
+        willUpdate: !!editingPipelineId,
+        willCreate: !editingPipelineId
+      });
 
       const { data, error } = await supabase.functions.invoke('save-pipeline', {
         body: {
@@ -348,6 +366,7 @@ const Index = () => {
       const savedPipeline = data?.data as { id?: string } | null | undefined;
 
       if (savedPipeline?.id) {
+        console.log('Setting editingPipelineId to:', savedPipeline.id);
         setEditingPipelineId(savedPipeline.id);
       }
 

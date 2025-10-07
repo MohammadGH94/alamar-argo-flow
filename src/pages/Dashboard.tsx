@@ -103,9 +103,8 @@ export default function Dashboard() {
   };
 
   const handleNewPipeline = () => {
-    // Start a brand-new pipeline in the builder without pre-creating a DB row.
-    // A new record will be created on the first save from the builder.
-    navigate('/');
+    // Navigate to pipeline builder with explicit "new" flag to force fresh start
+    navigate('/?new=true');
   };
 
   const handleDeletePipeline = async (id: string, e: React.MouseEvent) => {
