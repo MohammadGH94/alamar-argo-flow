@@ -239,13 +239,15 @@ const Index = () => {
   // Handle explicit "new pipeline" request from dashboard
   useEffect(() => {
     const isNewPipeline = searchParams.get('new');
-    if (isNewPipeline === 'true' && editingPipelineId) {
-      console.log('Forcing new pipeline, clearing editing ID:', editingPipelineId);
+    if (isNewPipeline === 'true') {
+      console.log('Forcing new pipeline session');
+      skipNextEditLoad.current = true;
       setEditingPipelineId(null);
       setPipelineState(createInitialPipelineState());
+      setCurrentStep(-1);
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, editingPipelineId, setSearchParams]);
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -255,38 +257,47 @@ const Index = () => {
       }
 
       if (user && !userProfile) {
-        const { data: profile } = await supabase
+        const profileQuery = supabase
           .from('profiles')
           .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
+          .eq('user_id', user.id);
 
-        if (profile) {
-          setUserProfile(profile);
-          // Auto-fill user info from profile for new pipelines
-          if (!editingPipelineId && !pipelineState.userInfo.name) {
-            console.log('Auto-filling user info from profile');
-            setPipelineState(prev => ({
-              ...prev,
-              userInfo: {
-                name: profile.name || '',
-                email: profile.email || ''
-              }
-            }));
-            // Skip user info form if profile exists
-            if (profile.name) {
-              setCurrentStep(0);
-              toast({
-                title: "New pipeline started",
-                description: "Creating a new pipeline configuration.",
-              });
+        const profileResult = 'maybeSingle' in profileQuery && typeof (profileQuery as any).maybeSingle === 'function'
+          ? await (profileQuery as any).maybeSingle()
+          : await (profileQuery as any).single();
+
+        const { data: profile, error } = profileResult;
+
+        if (error) {
+          throw error;
+        }
+
+        setUserProfile(profile ?? {});
+
+        if (profile && !editingPipelineId && !pipelineState.userInfo.name) {
+          console.log('Auto-filling user info from profile');
+          setPipelineState(prev => ({
+            ...prev,
+            userInfo: {
+              name: profile.name || '',
+              email: profile.email || ''
             }
+          }));
+          // Skip user info form if profile exists
+          if (profile.name) {
+            setCurrentStep(0);
+            toast({
+              title: "New pipeline started",
+              description: "Creating a new pipeline configuration.",
+            });
           }
         }
       }
     };
 
-    initializeUser();
+    initializeUser().catch(error => {
+      console.error('Error initializing user profile:', error);
+    });
   }, [user, loading, navigate, userProfile, editingPipelineId, pipelineState.userInfo.name, toast]);
 
   // Load pipeline data if editing
