@@ -228,6 +228,7 @@ const Index = () => {
   const [currentStep, setCurrentStep] = useState(-1); // Start with user info form (-1)
   const [editingPipelineId, setEditingPipelineId] = useState<string | null>(null);
   const [pipelineState, setPipelineState] = useState<PipelineState>(() => createInitialPipelineState());
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -236,10 +237,45 @@ const Index = () => {
   const skipNextEditLoad = useRef(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate]);
+    const initializeUser = async () => {
+      if (!loading && !user) {
+        navigate('/auth');
+        return;
+      }
+
+      if (user && !userProfile) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setUserProfile(profile);
+          // Auto-fill user info from profile for new pipelines
+          if (!editingPipelineId && !pipelineState.userInfo.name) {
+            setPipelineState(prev => ({
+              ...prev,
+              userInfo: {
+                name: profile.name || '',
+                email: profile.email || ''
+              }
+            }));
+            // Skip user info form if profile exists
+            if (profile.name) {
+              setCurrentStep(0);
+              toast({
+                title: "New pipeline started",
+                description: "Creating a new pipeline configuration.",
+              });
+            }
+          }
+        }
+      }
+    };
+
+    initializeUser();
+  }, [user, loading, navigate, userProfile, editingPipelineId, pipelineState.userInfo.name, toast]);
 
   // Load pipeline data if editing
   useEffect(() => {
@@ -960,12 +996,31 @@ const Index = () => {
     await navigateToStep(currentStep - 1);
   };
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
     skipNextEditLoad.current = true;
     setSearchParams({}, { replace: true });
     setEditingPipelineId(null);
-    setCurrentStep(-1);
-    setPipelineState(createInitialPipelineState());
+    
+    // Reset to initial state
+    const initialState = createInitialPipelineState();
+    
+    // Pre-fill user info from profile if available
+    if (userProfile?.name) {
+      initialState.userInfo = {
+        name: userProfile.name || '',
+        email: userProfile.email || ''
+      };
+      setPipelineState(initialState);
+      setCurrentStep(0); // Skip user info form
+      toast({
+        title: "New pipeline started",
+        description: "Ready to configure a new analytical pipeline.",
+      });
+    } else {
+      setPipelineState(initialState);
+      setCurrentStep(-1);
+    }
+    
     navigate('/', { replace: true });
   };
 
